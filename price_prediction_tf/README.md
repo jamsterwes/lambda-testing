@@ -20,7 +20,7 @@ docker build -t price-prediction-tf .
 
 Run this command to start the container:
 ```
-docker run -p 8080:8080 lambda-tensorflow-example
+docker run -p 8080:8080 price-prediction-tf
 ```
 
 Next, open up your favorite REST API testing tool such as Postman.
@@ -35,7 +35,7 @@ and you will send a POST request with an application/json body containing the da
 ### Step 3. Tag the Docker container for upload on ECR
 
 ```
-docker tag lambda-tensorflow-example <ecr_url>/pricing-lambda
+docker tag price-prediction-tf <ecr_url>/pricing-lambda
 ```
 
 ### Step 4. Upload to ECR

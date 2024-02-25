@@ -44,6 +44,36 @@ docker tag price-prediction-tf <ecr_url>/pricing-lambda
 docker push <ecr_url>/pricing-lambda
 ```
 
+### Step 5. Update the Lambda image
+
+Deploy the new image:
+
+![Deploy new image](imgs/deploy-lambda.png)
+
+Browse for the image:
+
+![Browse for image](imgs/browse-images.png)
+
+Select our ECR repository:
+
+![Select ECR repo](imgs/repository.png)
+
+Now select the **latest** copy of the image:
+
+![Select latest](imgs/select-image.png)
+
+Finally click **Save**.
+
+### Step 6. Delete the old image
+
+Please do this so we don't pay extra for storage!!
+
+Go to the ECR page and select our repository.
+
+Find the image without a **latest** tag and delete it.
+
+> Image pending...
+
 ## Calling from AWS Lambda
 
 This container expects (mile, minute) pairs in JSON form:

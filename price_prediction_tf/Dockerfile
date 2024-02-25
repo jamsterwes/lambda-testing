@@ -9,8 +9,6 @@ COPY simple_model/ ./simple_model
 
 # Install the python requirements from requirements.txt
 RUN python3.8 -m pip install -r requirements.txt
-# Replace Pillow with Pillow-SIMD to take advantage of AVX2
-RUN pip uninstall -y pillow && CC="cc -mavx2" pip install -U --force-reinstall pillow-simd
 
 # Copy the earlier created app.py file to the container
 COPY app.py ./

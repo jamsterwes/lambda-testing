@@ -22,8 +22,8 @@ const getBoundingBox = (long, lat, radius) => {
     return { left, right, top, bottom };
 };
 
-// Returns XML text response
-const getMapBox = async (long, lat, radius) => {
+// Returns [ [ {lat: number, lon: number} ] ]
+const getStreetGeom = async (long, lat, radius) => {
     // Get bounding box
     const { left, right, top, bottom } = getBoundingBox(long, lat, radius);
 
@@ -34,14 +34,24 @@ const getMapBox = async (long, lat, radius) => {
         method: 'POST',
         body: 'data=' + encodeURIComponent(`[out:json];(way["highway"="primary"](${bbox});way["highway"="secondary"](${bbox});way["highway"="tertiary"](${bbox});way["highway"="residential"](${bbox}););out geom;`)
     });
-    return osm.json();
+    const ways = await osm.json();
+    // Only really need the geometry
+    return ways['elements'].map(way => way.geometry);
 };
+
+// Intersect way with ring
+// (radius in miles)
+const intersectWayRing = (wayGeom, long, lat, radius) => {
+    // TODO: write this to return the intersections between
+    // a "ring" (a mile circle but long-lat ellipsoid)
+    // and the geometry of a way (section of a road)
+}
 
 export const handler = async (event) => {
     // TODO implement
     const response = {
         statusCode: 200,
-        body: await getMapBox(event['long'], event['lat'], 1.0)
+        body: await getStreetGeom(event['long'], event['lat'], 1.0)
     };
     return response;
 };

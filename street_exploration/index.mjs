@@ -77,77 +77,50 @@ const getStreetGeom = async (long, lat, radius) => {
 // a, b - ellipse parameters
 // x1, y1, x2, y2 - line segment
 const intersectLineRing = (cx, cy, a, b, x1, y1, x2, y2) => {
-    // Okay so I did the math and forgot to like, move the ellipse off center
-    // .. so this code will operate relative to the center of the ellipse
-    const x1c = x1 - cx;
-    const y1c = y1 - cy;
-    const x2c = x2 - cx;
-    const y2c = y2 - cy;
+    // Step 1. Set origin + scale
+    const X1 = (x1 - cx) / a;
+    const X2 = (x2 - cx) / a;
+    const Y1 = (y1 - cy) / b;
+    const Y2 = (y2 - cy) / b;
 
-    // Calculate the quadratic coefficients
-    const A = Math.pow((x2c - x1c) / a, 2) + Math.pow((y2c - y1c) / b, 2);
-    const B = 2 * ((x2c - x1c) / (a * a) + (y2c - y1c) / (b * b));
-    const C = Math.pow(x1c / a, 2) + Math.pow(y1c / b, 2) - 1;
+    // Step 2. Solve
 
-    // Calculate the discriminant
-    const disc = B * B - 4 * A * C;
+    // Step 2a. Get quadratic coefficients
+    const A = Math.pow(X2 - X1, 2) + Math.pow(Y2 - Y1, 2);
+    const B = 2 * ( X1 * (X2 - X1) + Y1 * (Y2 - Y1) );
+    const C = X1 * X1 + Y1 * Y1 - 1;
 
-    // If disc < 0, no intersections
-    if (disc < 0)
+    // Step 2b. Find discriminant
+    const D = B * B - 4 * A * C;
+
+    // Step 2c. Get # of solutions
+    let ts = [];
+    if (D < 0) return [];
+    if (D > 0)
     {
-        return [];
+        // console.log((-B + Math.sqrt(D)) / (2.0 * A));
+        ts.push((-B + Math.sqrt(D)) / (2.0 * A));
+        ts.push((-B - Math.sqrt(D)) / (2.0 * A));
+    }
+    else 
+    {
+        ts.push(-B / (2.0 * A));
     }
 
-    // Solutions are now -B/2A +- SQRT(disc)/2A
-    // .. aka int +- SQRT(disc)/2A
-    const int = -B / (2 * A);
-
-    // If disc == 0, one intersection
-    if (disc == 0)
+    // Step 3. Convert t values into coordinates
+    let solutions = [];
+    for (let i = 0; i < ts.length; i++)
     {
-        // Get u
-        const u = int;
+        // Ignore t outside [0,1]
+        if (ts[i] < 0 || ts[i] > 1) continue;
 
-        // Test range
-        if (u < 0 || u > 1) return [];
-
-        // Return point
-        // Calculate using true points
-        return [{
-            'lon': (x2c - x1c) * u + x1c + cx,
-            'lat': (y2c - y1c) * u + y1c + cy
-        }];
+        // Get coordinates
+        solutions.push({
+            'lon': (x2 - x1) * ts[i] + x1,
+            'lat': (y2 - y1) * ts[i] + y1
+        });
     }
-    // Otherwise, disc > 0, two intersections
-    else
-    {
-        // Solutions
-        let solutions = [];
-
-        // Get u1, u2
-        const u1 = int + Math.sqrt(disc) / (2 * A);
-        const u2 = int - Math.sqrt(disc) / (2 * A);
-
-        // Test u1 range
-        if (u1 >= 0 && u1 <= 1)
-        {
-            solutions.push({
-                'lon': (x2c - x1c) * u1 + x1c + cx,
-                'lat': (y2c - y1c) * u1 + y1c + cy
-            });
-        }
-
-        // Test u2 range
-        if (u2 >= 0 && u2 <= 1)
-        {
-            solutions.push({
-                'lon': (x2c - x1c) * u2 + x1c + cx,
-                'lat': (y2c - y1c) * u2 + y1c + cy
-            });
-        }
-
-        return solutions;
-    }
+    return solutions;
 }
 
 // Intersect way with ring
@@ -209,7 +182,7 @@ export const handler = async (event) => {
     let ring = [];
     for (let i = 0; i < wayGeoms.length; i++)
     {
-        const wayPoints = intersectWayRing(wayGeoms[i], long, lat, 1.0);
+        const wayPoints = intersectWayRing(wayGeoms[i], long, lat, 0.25);
         ring = ring.concat(wayPoints);
     }
     points = ring;

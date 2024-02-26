@@ -178,6 +178,22 @@ const intersectWayRing = (wayGeom, long, lat, radius) => {
     return points;
 }
 
+// Only take ten points from each ring
+const cullRing = (points, maxCount) => {
+    // If we are under budget, keep them
+    if (points.length < maxCount) return points;
+
+    // Randomize points (in-place)
+    points.sort((a, b) => (Math.random() > 0.5) ? 1 : -1);
+
+    // Return the top maxCount points
+    return points.slice(0, maxCount);
+}
+
+// Set ring radii
+const RING_RADII = [0.25, 0.5, 0.75, 1.0];
+const RING_SIZE = [10, 20, 30, 40];
+
 export const handler = async (event) => {
     // Step 0: unpack request
     const long = event['long'];
@@ -187,20 +203,16 @@ export const handler = async (event) => {
     const wayGeoms = await getStreetGeom(long, lat, 2.0);
 
     // Step 2: Loop through ways
-    let points = [];
-    for (let i = 0; i < wayGeoms.length; i++)
+    let rings = [];
+    for (let r = 0; r < RING_RADII.length; r++)
     {
-        // Calculate four ways
-        const wayPoints_0_25mi = intersectWayRing(wayGeoms[i], long, lat, 0.25);
-        const wayPoints_0_50mi = intersectWayRing(wayGeoms[i], long, lat, 0.5);
-        const wayPoints_0_75mi = intersectWayRing(wayGeoms[i], long, lat, 0.75);
-        const wayPoints_1_00mi = intersectWayRing(wayGeoms[i], long, lat, 1.0);
-
-        // Concat four ways
-        points = points.concat(wayPoints_0_25mi);
-        points = points.concat(wayPoints_0_50mi);
-        points = points.concat(wayPoints_0_75mi);
-        points = points.concat(wayPoints_1_00mi);
+        let ring = [];
+        for (let i = 0; i < wayGeoms.length; i++)
+        {
+            const wayPoints = intersectWayRing(wayGeoms[i], long, lat, RING_RADII[r]);
+            ring = ring.concat(wayPoints);
+        }
+        rings.concat(cullRing(ring, RING_SIZE[r]));
     }
 
     const response = {

@@ -204,16 +204,17 @@ export const handler = async (event) => {
 
     // Step 2: Loop through ways
     let points = [];
-    for (let r = 0; r < RING_RADII.length; r++)
+    // for (let r = 0; r < RING_RADII.length; r++)
+    // {
+    let ring = [];
+    for (let i = 0; i < wayGeoms.length; i++)
     {
-        let ring = [];
-        for (let i = 0; i < wayGeoms.length; i++)
-        {
-            const wayPoints = intersectWayRing(wayGeoms[i], long, lat, RING_RADII[r]);
-            ring = ring.concat(wayPoints);
-        }
-        points = points.concat(cullRing(ring, RING_SIZE[r]));
+        const wayPoints = intersectWayRing(wayGeoms[i], long, lat, 1.0);
+        ring = ring.concat(wayPoints);
     }
+    points = ring;
+        // points = points.concat(cullRing(ring, RING_SIZE[r]));
+    // }
 
     const response = {
         statusCode: 200,

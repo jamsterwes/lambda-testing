@@ -37,11 +37,15 @@ const getStreetGeom = async (long, lat, radius) => {
     // ..   way["highway"="primary"](${{bbox}}); -- get all "primary" roads in bbox (1mi x 1mi square around user)
     // ..   way["highway"="secondary"](${{bbox}}); -- get all "secondary" roads in bbox (1mi x 1mi square around user)
     // ..   way["highway"="tertiary"](${{bbox}}); -- get all "tertiary" roads in bbox (1mi x 1mi square around user)
+    // ..   way["highway"="residential"](${{bbox}}); -- get all "residential" roads in bbox (1mi x 1mi square around user)
+    // ..   way["highway"="service"](${{bbox}}); -- get all "service" roads (parking lots) in bbox (1mi x 1mi square around user)
     // .. ); -- close the group
     // .. out geom;  -- return only the geometry of the roads, not the buildings connected to them
+    const query = `[out:json];(way["highway"="primary"](${bbox});way["highway"="secondary"](${bbox});way["highway"="tertiary"](${bbox});way["highway"="residential"](${bbox});way["highway"="service"](${bbox}););out geom;`;
+    console.log(query);
     const osm = await fetch(api_url, {
         method: 'POST',
-        body: 'data=' + encodeURIComponent(`[out:json];(way["highway"="primary"](${bbox});way["highway"="secondary"](${bbox});way["highway"="tertiary"](${bbox});way["highway"="residential"](${bbox}););out geom;`)
+        body: 'data=' + encodeURIComponent(query)
     });
     const ways = await osm.json();
     // Only really need the geometry

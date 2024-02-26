@@ -111,7 +111,7 @@ const intersectLineRing = (cx, cy, a, b, x1, y1, x2, y2) => {
     let solutions = [];
     for (let i = 0; i < ts.length; i++)
     {
-        // Ignore t outside [0,1]
+        // Ignore t outside (0,1)
         if (ts[i] < 0 || ts[i] > 1) continue;
 
         // Get coordinates
@@ -177,17 +177,16 @@ export const handler = async (event) => {
 
     // Step 2: Loop through ways
     let points = [];
-    // for (let r = 0; r < RING_RADII.length; r++)
-    // {
-    let ring = [];
-    for (let i = 0; i < wayGeoms.length; i++)
+    for (let r = 0; r < RING_RADII.length; r++)
     {
-        const wayPoints = intersectWayRing(wayGeoms[i], long, lat, 0.25);
-        ring = ring.concat(wayPoints);
-    }
-    points = ring;
+    // let ring = [];
+        for (let i = 0; i < wayGeoms.length; i++)
+        {
+            const wayPoints = intersectWayRing(wayGeoms[i], long, lat, RING_RADII[r]);
+            points = points.concat(wayPoints);
+        }
         // points = points.concat(cullRing(ring, RING_SIZE[r]));
-    // }
+    }
 
     const response = {
         statusCode: 200,

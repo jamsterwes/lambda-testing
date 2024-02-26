@@ -193,10 +193,10 @@ export const handler = async (event) => {
     for (let i = 0; i < wayGeoms.length; i++)
     {
         // Calculate four ways
-        let wayPoints_0_25mi = intersectWayRing(wayGeoms[i], long, lat, 0.25);
-        let wayPoints_0_50mi = intersectWayRing(wayGeoms[i], long, lat, 0.5);
-        let wayPoints_0_75mi = intersectWayRing(wayGeoms[i], long, lat, 0.75);
-        let wayPoints_1_00mi = intersectWayRing(wayGeoms[i], long, lat, 1.0);
+        const wayPoints_0_25mi = intersectWayRing(wayGeoms[i], long, lat, 0.25);
+        const wayPoints_0_50mi = intersectWayRing(wayGeoms[i], long, lat, 0.5);
+        const wayPoints_0_75mi = intersectWayRing(wayGeoms[i], long, lat, 0.75);
+        const wayPoints_1_00mi = intersectWayRing(wayGeoms[i], long, lat, 1.0);
 
         // Concat four ways
         points = points.concat(wayPoints_0_25mi);

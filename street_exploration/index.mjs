@@ -62,7 +62,6 @@ const getStreetGeom = async (long, lat, radius) => {
     // .. ); -- close the group
     // .. out geom;  -- return only the geometry of the roads, not the buildings connected to them
     const query = `[out:json];(way["highway"="primary"](${bbox});way["highway"="secondary"](${bbox});way["highway"="tertiary"](${bbox});way["highway"="residential"](${bbox});way["highway"="service"](${bbox});way["highway"="unclassified"](${bbox}););out geom;`;
-    console.log(query);
     const osm = await fetch(api_url, {
         method: 'POST',
         body: 'data=' + encodeURIComponent(query)
@@ -73,27 +72,144 @@ const getStreetGeom = async (long, lat, radius) => {
 };
 
 // Intersect line segment with ring
-// (xrad, yrad) in degrees
-const intersectLine = (lat_center, long_center, lat_radius, long_radius) => {
+// All coordinates in degrees lat/long
+// cx, cy - center (long = x, lat = y)
+// a, b - ellipse parameters
+// x1, y1, x2, y2 - line segment
+const intersectLineRing = (cx, cy, a, b, x1, y1, x2, y2) => {
+    // Okay so I did the math and forgot to like, move the ellipse off center
+    // .. so this code will operate relative to the center of the ellipse
+    const x1c = x1 - cx;
+    const y1c = y1 - cy;
+    const x2c = x2 - cx;
+    const y2c = y2 - cy;
 
+    // Calculate the quadratic coefficients
+    const A = Math.pow((x2c - x1c) / a, 2) + Math.pow((y2c - y1c) / b, 2);
+    const B = 2 * ((x2c - x1c) / (a * a) + (y2c - y1c) / (b * b));
+    const C = Math.pow(x1c / a, 2) + Math.pow(y1c / b, 2) - 1;
+
+    // Calculate the discriminant
+    const disc = B * B - 4 * A * C;
+
+    // If disc < 0, no intersections
+    if (disc < 0)
+    {
+        return [];
+    }
+
+    // Solutions are now -B/2A +- disc
+    // .. aka int +- disc
+    const int = -B / (2 * A);
+
+    // If disc == 0, one intersection
+    if (disc == 0)
+    {
+        // Get u
+        const u = int;
+
+        // Test range
+        if (u < 0 || u > 1) return [];
+
+        // Return point
+        // Calculate using true points
+        return [{
+            'lon': (x2 - x1) * u + x1,
+            'lat': (y2 - y1) * u + y1
+        }];
+    }
+    // Otherwise, disc > 0, two intersections
+    else
+    {
+        // Solutions
+        let solutions = [];
+
+        // Get u1, u2
+        const u1 = int + disc;
+        const u2 = int - disc;
+
+        // Test u1 range
+        if (u1 >= 0 && u1 <= 1)
+        {
+            solutions.push({
+                'lon': (x2 - x1) * u1 + x1,
+                'lat': (y2 - y1) * u1 + y1
+            });
+        }
+
+        // Test u2 range
+        if (u2 >= 0 && u2 <= 1)
+        {
+            solutions.push({
+                'lon': (x2 - x1) * u2 + x1,
+                'lat': (y2 - y1) * u2 + y1
+            });
+        }
+
+        return solutions;
+    }
 }
 
 // Intersect way with ring
 // (radius in miles)
 const intersectWayRing = (wayGeom, long, lat, radius) => {
-    // TODO: write this to return the intersections between
-    // a "ring" (a mile circle but long-lat ellipsoid)
-    // and the geometry of a way (section of a road)
-
     // Step 1: Get the two radii of the ellipse
     const x_radii = milesToLongitude(radius, lat);
+    const y_radii = milesToLatitude(radius, lat);
+
+    // Step 2: Accumulate points
+    let points = [];
+    for (let i = 0; i < wayGeom.length - 1; i++)
+    {
+        // Get line segment
+        let x1 = wayGeom[i]['lon'];
+        let y1 = wayGeom[i]['lat'];
+        let x2 = wayGeom[i+1]['lon'];
+        let y2 = wayGeom[i+1]['lat'];
+
+        // console.log(`Line segment of length: ${Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))}`)
+
+        // Get solutions
+        const solutions = intersectLineRing(long, lat, x_radii, y_radii, x1, y1, x2, y2);
+
+        // Add them to points
+        points = points.concat(solutions);
+    }
+
+    // Return points
+    return points;
 }
 
 export const handler = async (event) => {
-    // TODO implement
+    // Step 0: unpack request
+    const long = event['long'];
+    const lat = event['lat'];
+
+    // Step 1: Get geometry
+    const wayGeoms = await getStreetGeom(long, lat, 2.0);
+
+    // Step 2: Loop through ways
+    let points = [];
+    for (let i = 0; i < wayGeoms.length; i++)
+    {
+        // Calculate four ways
+        let wayPoints_0_25mi = intersectWayRing(wayGeoms[i], long, lat, 0.25);
+        let wayPoints_0_50mi = intersectWayRing(wayGeoms[i], long, lat, 0.5);
+        let wayPoints_0_75mi = intersectWayRing(wayGeoms[i], long, lat, 0.75);
+        let wayPoints_1_00mi = intersectWayRing(wayGeoms[i], long, lat, 1.0);
+
+        // Concat four ways
+        points = points.concat(wayPoints_0_25mi);
+        points = points.concat(wayPoints_0_50mi);
+        points = points.concat(wayPoints_0_75mi);
+        points = points.concat(wayPoints_1_00mi);
+    }
+
     const response = {
         statusCode: 200,
-        body: await getStreetGeom(event['long'], event['lat'], 2.0)
+        body: {
+            points
+        }
     };
     return response;
 };

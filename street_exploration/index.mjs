@@ -27,9 +27,18 @@ const getStreetGeom = async (long, lat, radius) => {
     // Get bounding box
     const { left, right, top, bottom } = getBoundingBox(long, lat, radius);
 
-    // Now go fetch the XML
+    // Now go fetch the JSON
     const api_url = `https://overpass-api.de/api/interpreter`;
     const bbox = `${bottom},${left},${top},${right}`;
+
+    // Query is URL-encoded, explanation of query:
+    // .. [out:json]; -- so that we get JSON not XML
+    // .. (  -- start a group of selections
+    // ..   way["highway"="primary"](${{bbox}}); -- get all "primary" roads in bbox (1mi x 1mi square around user)
+    // ..   way["highway"="secondary"](${{bbox}}); -- get all "secondary" roads in bbox (1mi x 1mi square around user)
+    // ..   way["highway"="tertiary"](${{bbox}}); -- get all "tertiary" roads in bbox (1mi x 1mi square around user)
+    // .. ); -- close the group
+    // .. out geom;  -- return only the geometry of the roads, not the buildings connected to them
     const osm = await fetch(api_url, {
         method: 'POST',
         body: 'data=' + encodeURIComponent(`[out:json];(way["highway"="primary"](${bbox});way["highway"="secondary"](${bbox});way["highway"="tertiary"](${bbox});way["highway"="residential"](${bbox}););out geom;`)

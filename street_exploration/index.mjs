@@ -26,12 +26,12 @@ const milesToLongitude = (mi, latitude) => {
     return long_deg;
 }
 
-// Find the lat/long bounds of a box centered at (long, lat) with a s = radius
+// Find the lat/long bounds of a box centered at (long, lat) with sideLength
 // Returns { left: number, right: number, top: number, bottom: number }
-const getBoundingBox = (long, lat, radius) => {
+const getBoundingBox = (long, lat, sideLength) => {
     // Convert miles to deg lat/long
-    const width = milesToLongitude(radius, lat);
-    const height = milesToLatitude(radius, lat);
+    const width = milesToLongitude(sideLength, lat);
+    const height = milesToLatitude(sideLength, lat);
 
     const left = long - width / 2;
     const right = long + width / 2;
@@ -86,14 +86,14 @@ const intersectWayRing = (wayGeom, long, lat, radius) => {
     // and the geometry of a way (section of a road)
 
     // Step 1: Get the two radii of the ellipse
-    const x_radii = milesToLatitude()
+    const x_radii = milesToLongitude(radius, lat);
 }
 
 export const handler = async (event) => {
     // TODO implement
     const response = {
         statusCode: 200,
-        body: await getStreetGeom(event['long'], event['lat'], 1.0)
+        body: await getStreetGeom(event['long'], event['lat'], 2.0)
     };
     return response;
 };

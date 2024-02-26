@@ -1,18 +1,37 @@
+const milesToLatitude = (mi, latitude) => {
+    // See https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
+    const phi = latitude * Math.PI / 180.0;
+    const a = 3963.190592;
+    const e = 0.081819191;
+
+    // M = length of 1rad latitude in mi
+    const M = a * (1 - e * e) / Math.pow(1 - Math.pow(e * Math.sin(phi), 2), 1.5);
+
+    // Convert mi miles to deg latitude
+    const lat_deg = mi * 180 / (Math.PI * M);
+    return lat_deg;
+}
+
+const milesToLongitude = (mi, latitude) => {
+    // See https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
+    const phi = latitude * Math.PI / 180.0;
+    const a = 3963.190592;
+    const e = 0.081819191;
+
+    // R = length of 1rad longitude in mi
+    const R = a * Math.cos(phi) / Math.pow(1 - Math.pow(e * Math.sin(phi), 2), 0.5);
+
+    // Convert mi miles to deg latitude
+    const long_deg = mi * 180 / (Math.PI * R);
+    return long_deg;
+}
+
 // Find the lat/long bounds of a box centered at (long, lat) with a s = radius
 // Returns { left: number, right: number, top: number, bottom: number }
 const getBoundingBox = (long, lat, radius) => {
-    // See https://gis.stackexchange.com/questions/142326/calculating-longitude-length-in-miles
-    const phi = lat * Math.PI / 180.0;
-    const a = 3963.190592;
-    const e = 0.081819191;
-    const M = a * (1 - e * e) / Math.pow(1 - Math.pow(e * Math.sin(phi), 2), 1.5);
-    const R = a * Math.cos(phi) / Math.pow(1 - Math.pow(e * Math.sin(phi), 2), 0.5);
-
-    // M = length of 1rad latitude in mi
-    // R = length of 1rad longitude in mi
-
-    const width = radius * 180 / (Math.PI * M);
-    const height = radius * 180 / (Math.PI * R);
+    // Convert miles to deg lat/long
+    const width = milesToLongitude(radius, lat);
+    const height = milesToLatitude(radius, lat);
 
     const left = long - width / 2;
     const right = long + width / 2;
@@ -53,12 +72,21 @@ const getStreetGeom = async (long, lat, radius) => {
     return ways['elements'].map(way => way.geometry);
 };
 
+// Intersect line segment with ring
+// (xrad, yrad) in degrees
+const intersectLine = (lat_center, long_center, lat_radius, long_radius) => {
+
+}
+
 // Intersect way with ring
 // (radius in miles)
 const intersectWayRing = (wayGeom, long, lat, radius) => {
     // TODO: write this to return the intersections between
     // a "ring" (a mile circle but long-lat ellipsoid)
     // and the geometry of a way (section of a road)
+
+    // Step 1: Get the two radii of the ellipse
+    const x_radii = milesToLatitude()
 }
 
 export const handler = async (event) => {

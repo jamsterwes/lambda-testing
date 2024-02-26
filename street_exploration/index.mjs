@@ -162,12 +162,10 @@ const intersectWayRing = (wayGeom, long, lat, radius) => {
     for (let i = 0; i < wayGeom.length - 1; i++)
     {
         // Get line segment
-        let x1 = wayGeom[i]['lon'];
-        let y1 = wayGeom[i]['lat'];
-        let x2 = wayGeom[i+1]['lon'];
-        let y2 = wayGeom[i+1]['lat'];
-
-        // console.log(`Line segment of length: ${Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))}`)
+        const x1 = wayGeom[i]['lon'];
+        const y1 = wayGeom[i]['lat'];
+        const x2 = wayGeom[i+1]['lon'];
+        const y2 = wayGeom[i+1]['lat'];
 
         // Get solutions
         const solutions = intersectLineRing(long, lat, x_radii, y_radii, x1, y1, x2, y2);

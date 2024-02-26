@@ -164,7 +164,7 @@ const cullRing = (points, maxCount) => {
 }
 
 // Set ring radii
-const RING_RADII = [0.25, 0.5, 0.75, 1.0];
+const RING_RADII = [0.1, 0.25, 0.5, 1.75];
 const RING_SIZE = [10, 20, 30, 40];
 
 export const handler = async (event) => {

@@ -98,8 +98,8 @@ const intersectLineRing = (cx, cy, a, b, x1, y1, x2, y2) => {
         return [];
     }
 
-    // Solutions are now -B/2A +- SQRT(disc)
-    // .. aka int +- SQRT(disc)
+    // Solutions are now -B/2A +- SQRT(disc)/2A
+    // .. aka int +- SQRT(disc)/2A
     const int = -B / (2 * A);
 
     // If disc == 0, one intersection
@@ -125,8 +125,8 @@ const intersectLineRing = (cx, cy, a, b, x1, y1, x2, y2) => {
         let solutions = [];
 
         // Get u1, u2
-        const u1 = int + Math.sqrt(disc);
-        const u2 = int - Math.sqrt(disc);
+        const u1 = int + Math.sqrt(disc) / (2 * A);
+        const u2 = int - Math.sqrt(disc) / (2 * A);
 
         // Test u1 range
         if (u1 >= 0 && u1 <= 1)

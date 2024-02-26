@@ -114,8 +114,8 @@ const intersectLineRing = (cx, cy, a, b, x1, y1, x2, y2) => {
         // Return point
         // Calculate using true points
         return [{
-            'lon': (x2 - x1) * u + x1,
-            'lat': (y2 - y1) * u + y1
+            'lon': (x2c - x1c) * u + x1c + cx,
+            'lat': (y2c - y1c) * u + y1c + cy
         }];
     }
     // Otherwise, disc > 0, two intersections
@@ -132,8 +132,8 @@ const intersectLineRing = (cx, cy, a, b, x1, y1, x2, y2) => {
         if (u1 >= 0 && u1 <= 1)
         {
             solutions.push({
-                'lon': (x2 - x1) * u1 + x1,
-                'lat': (y2 - y1) * u1 + y1
+                'lon': (x2c - x1c) * u1 + x1c + cx,
+                'lat': (y2c - y1c) * u1 + y1c + cy
             });
         }
 
@@ -141,8 +141,8 @@ const intersectLineRing = (cx, cy, a, b, x1, y1, x2, y2) => {
         if (u2 >= 0 && u2 <= 1)
         {
             solutions.push({
-                'lon': (x2 - x1) * u2 + x1,
-                'lat': (y2 - y1) * u2 + y1
+                'lon': (x2c - x1c) * u2 + x1c + cx,
+                'lat': (y2c - y1c) * u2 + y1c + cy
             });
         }
 

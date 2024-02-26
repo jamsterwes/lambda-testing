@@ -203,7 +203,7 @@ export const handler = async (event) => {
     const wayGeoms = await getStreetGeom(long, lat, 2.0);
 
     // Step 2: Loop through ways
-    let rings = [];
+    let points = [];
     for (let r = 0; r < RING_RADII.length; r++)
     {
         let ring = [];
@@ -212,14 +212,14 @@ export const handler = async (event) => {
             const wayPoints = intersectWayRing(wayGeoms[i], long, lat, RING_RADII[r]);
             ring = ring.concat(wayPoints);
         }
-        rings.concat(cullRing(ring, RING_SIZE[r]));
+        points = points.concat(cullRing(ring, RING_SIZE[r]));
     }
 
     const response = {
         statusCode: 200,
         body: {
             pointCount: points.length,
-            points
+            points: points
         }
     };
     return response;

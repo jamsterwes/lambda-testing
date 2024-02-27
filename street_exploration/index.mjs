@@ -187,12 +187,15 @@ export const handler = async (event) => {
         }
         // points = points.concat(cullRing(ring, RING_SIZE[r]));
     }
+    
+    // Step 3: Convert points to array of arrays
+    const pointsArray = points.map(point => [point.lon, point.lat]);
 
     const response = {
         statusCode: 200,
         body: {
             pointCount: points.length,
-            points: points
+            points: pointsArray
         }
     };
     return response;

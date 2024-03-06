@@ -75,7 +75,17 @@ func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]
 
 	// Query OSM for streets within the bounding box
 	bbox := fmt.Sprintf("%f,%f,%f,%f", bottom, left, top, right)
-	query := fmt.Sprintf(`[out:json];(way["highway"="primary"](%s);way["highway"="secondary"](%s);way["highway"="tertiary"](%s);way["highway"="residential"](%s);way["highway"="service"](%s);way["highway"="unclassified"](%s););out geom;`,
+	query := fmt.Sprintf(`
+		[out:json];
+		(
+			way["highway"="primary"](%s);
+			way["highway"="secondary"](%s);
+			way["highway"="tertiary"](%s);
+			way["highway"="residential"](%s);
+			way["highway"="service"](%s);
+			way["highway"="unclassified"](%s);
+		);
+		out geom;`,
 		bbox, bbox, bbox, bbox, bbox, bbox)
 
 	// Make the request

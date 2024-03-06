@@ -16,6 +16,11 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+type Location struct {
+	Latitude float64 `json:"lat"`
+	Longitude float64 `json:"long"`
+}
+
 // GIS helper function
 func milesToDegLatitude(miles float64, latitude float64) float64 {
 	// Constants
@@ -64,7 +69,7 @@ func getUserBoundingBox(size float64, latitude float64, longitude float64) (floa
 }
 
 // Get street geometry
-func getStreetGeometry(radius float64, latitude float64, longitude float64) [][][2]float64 {
+func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]Location {
 	// Get bounding box
 	left, bottom, right, top := getUserBoundingBox(radius, latitude, longitude)
 
@@ -99,7 +104,7 @@ func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]
 	resBody, err := ioutil.ReadAll(res.Body)
 
 	// Decode response JSON (elements only)
-	var geometries [][][2]float64
+	var geometries [][]Location
 	var p fastjson.Parser
 
 	v, err := p.Parse(string(resBody))
@@ -111,11 +116,11 @@ func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]
 	// elements: Street[]
 	// Street = []{ lat: number, lon: number }
 	for _, street := range v.GetArray("elements") {
-		var streetGeometry [][2]float64
+		var streetGeometry []Location
 		for _, coords := range street.GetArray("geometry") {
-			streetGeometry = append(streetGeometry, [2]float64{
-				coords.GetFloat64("lat"),
-				coords.GetFloat64("lon"),
+			streetGeometry = append(streetGeometry, Location{
+				Latitude: coords.GetFloat64("lat"),
+				Longitude: coords.GetFloat64("lon"),
 			})
 		}
 		geometries = append(geometries, streetGeometry)
@@ -125,7 +130,7 @@ func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]
 }
 
 // Returns [][lat, long]
-func intersectLineRing(cx float64, cy float64, a float64, b float64, x1 float64, y1 float64, x2 float64, y2 float64) [][2]float64 {
+func intersectLineRing(cx float64, cy float64, a float64, b float64, x1 float64, y1 float64, x2 float64, y2 float64) []Location {
 	// Step 1. Set origin + scale
 	X1 := (x1 - cx) / a
 	X2 := (x2 - cx) / a
@@ -144,7 +149,7 @@ func intersectLineRing(cx float64, cy float64, a float64, b float64, x1 float64,
 	// Step 2c. Get # of solutions
 	var ts []float64
 	if (D < 0) {
-		return [][2]float64{}
+		return []Location{}
 	} else if (D > 0) {
 		ts = append(ts,
 			(-B + math.Sqrt(D)) / (2 * A),
@@ -155,7 +160,7 @@ func intersectLineRing(cx float64, cy float64, a float64, b float64, x1 float64,
 	}
 
 	// Step 3. Convert t values into coords
-	var solutions [][2]float64
+	var solutions []Location
 	for _, t := range ts {
 		// Ignore t outside (0, 1)
 		if (t < 0 || t > 1) {
@@ -163,9 +168,9 @@ func intersectLineRing(cx float64, cy float64, a float64, b float64, x1 float64,
 		}
 
 		// Get coords
-		solutions = append(solutions, [2]float64{
-			(x2 - x1) * t + x1,
-			(y2 - y1) * t + y1,
+		solutions = append(solutions, Location{
+			Longitude: (x2 - x1) * t + x1,
+			Latitude: (y2 - y1) * t + y1,
 		})
 	}
 
@@ -173,10 +178,10 @@ func intersectLineRing(cx float64, cy float64, a float64, b float64, x1 float64,
 }
 
 // Returns [][lat, long]
-func intersectWayRing(wayGeom [][2]float64, radius float64, latitude float64, longitude float64) [][2]float64 {
+func intersectWayRing(wayGeom []Location, radius float64, latitude float64, longitude float64) []Location {
 	// Step 0. Ignore empty geom
 	if len(wayGeom) == 0 {
-		return [][2]float64{}
+		return []Location{}
 	}
 
 	// Step 1. Get the two radii of the ellipse
@@ -184,13 +189,13 @@ func intersectWayRing(wayGeom [][2]float64, radius float64, latitude float64, lo
 	b := milesToDegLatitude(radius, latitude)
 
 	// Step 2. Accumulate points
-	var points [][2]float64
+	var points []Location
 	for i, _ := range wayGeom[:len(wayGeom) - 1] {
 		// Get line segment
-		y1 := wayGeom[i][0]
-		x1 := wayGeom[i][1]
-		y2 := wayGeom[i+1][0]
-		x2 := wayGeom[i+1][1]
+		x1 := wayGeom[i].Longitude
+		y1 := wayGeom[i].Latitude
+		x2 := wayGeom[i+1].Longitude
+		y2 := wayGeom[i+1].Latitude
 
 		// Get solutions and concat
 		solutions := intersectLineRing(longitude, latitude, a, b, x1, y1, x2, y2)
@@ -200,18 +205,18 @@ func intersectWayRing(wayGeom [][2]float64, radius float64, latitude float64, lo
 	return points
 }
 
-type MyEvent struct {
-	Latitude float64 `json:"lat"`
-	Longitude float64 `json:"long"`
+type PickupSelectionResponse struct {
+	Points []Location `json:"points"`
+	PointCount int `json:"pointCount"`
 }
 
-func HandleRequest(ctx context.Context, event *MyEvent) (*string, error) {
+func HandleRequest(ctx context.Context, event *Location) (*PickupSelectionResponse, error) {
 	if event == nil {
 		return nil, fmt.Errorf("received nil event")
 	}
 
 	// Get the street geometry in a 1mi x 1mi box centered at user position
-	var points [][2]float64
+	var points []Location
 	streetGeometries := getStreetGeometry(1, event.Latitude, event.Longitude)
 
 	for _, radius := range []float64{0.1, 0.25, 0.5, 0.75} {
@@ -221,14 +226,12 @@ func HandleRequest(ctx context.Context, event *MyEvent) (*string, error) {
 		}
 	}
 
-	// Now convert points to string
-	var response string = `{"points": [`
-	for _, point := range points {
-		response += fmt.Sprintf(`{"lat": %f, "long": %f}`, point[0], point[1])
+	response := &PickupSelectionResponse{
+		Points: points,
+		PointCount: len(points),
 	}
-	response += `],"pointCount": ` + fmt.Sprintf(`%d`, len(points)) + `}`
 
-	return &response, nil
+	return response, nil
 }
 
 func main() {

@@ -3,14 +3,20 @@ package main
 import (
 	"fmt"
 	"math"
-	// "net/http"
 	"context"
+	"io/ioutil"
+	"os"
+	"log"
 
-	// "github.com/valyala/fastjson"
 
+	"net/http"
+	"net/url"
+
+	"github.com/valyala/fastjson"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+// GIS helper function
 func milesToDegLatitude(miles float64, latitude float64) float64 {
 	// Constants
 	const a = 3963.190592
@@ -24,6 +30,7 @@ func milesToDegLatitude(miles float64, latitude float64) float64 {
 	return miles * 180 / (math.Pi * M)
 }
 
+// GIS helper function
 func milesToDegLongitude(miles float64, latitude float64) float64 {
 	// Constants
 	const a = 3963.190592
@@ -57,23 +64,61 @@ func getUserBoundingBox(size float64, latitude float64, longitude float64) (floa
 }
 
 // Get street geometry
-func getStreetGeometry(radius float64, latitude float64, longitude float64) [][2]float64 {
+func getStreetGeometry(radius float64, latitude float64, longitude float64) [][][2]float64 {
 	// Get bounding box
 	left, bottom, right, top := getUserBoundingBox(radius, latitude, longitude)
 
 	// Query OSM for streets within the bounding box
-	const apiURL = "https://overpass-api.de/api/interpreter"
 	bbox := fmt.Sprintf("%f,%f,%f,%f", bottom, left, top, right)
 	query := fmt.Sprintf(`[out:json];(way["highway"="primary"](%s);way["highway"="secondary"](%s);way["highway"="tertiary"](%s);way["highway"="residential"](%s);way["highway"="service"](%s);way["highway"="unclassified"](%s););out geom;`,
 		bbox, bbox, bbox, bbox, bbox, bbox)
 
-	fmt.Println(query)
+	// Make the request
+	q := make(url.Values)
+	q.Set("data", query)
 
-	// TODO: Make the request
+	apiURL := &url.URL{
+		Scheme: "https",
+		Host: "overpass-api.de",
+		Path: "/api/interpreter",
+		RawQuery: q.Encode(),
+	}
 
-	return [][2]float64{}
+	req, err := http.NewRequest(http.MethodGet, apiURL.String(), nil)
+	if err != nil {
+		fmt.Printf("Error creating http request: %s", err)
+		os.Exit(1)
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Printf("Error making http request: %s", err)
+		os.Exit(1)
+	}
+
+	resBody, err := ioutil.ReadAll(res.Body)
+
+	// Decode response JSON (elements only)
+	var geometries [][][2]float64
+	var p fastjson.Parser
+
+	v, err := p.Parse(string(resBody))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, street := range v.GetArray("elements") {
+		var streetGeometry [][2]float64
+		for _, coords := range street.GetArray() {
+			streetGeometry = append(streetGeometry, [2]float64{
+				coords.GetFloat64("lat"),
+				coords.GetFloat64("lon"),
+			})
+		}
+	}
+
+	return geometries
 }
-
 
 type MyEvent struct {
 	Latitude float64 `json:"lat"`

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
-	"net/http"
+	// "net/http"
 	"context"
 
 	// "github.com/valyala/fastjson"
@@ -57,9 +57,9 @@ func getUserBoundingBox(size float64, latitude float64, longitude float64) (floa
 }
 
 // Get street geometry
-func getStreetGeometry(radius float64, latitude float64, longitude float64) [](float64, float64) {
+func getStreetGeometry(radius float64, latitude float64, longitude float64) [][2]float64 {
 	// Get bounding box
-	(left, bottom, right, top) = getUserBoundingBox(radius, latitude, longitude)
+	left, bottom, right, top := getUserBoundingBox(radius, latitude, longitude)
 
 	// Query OSM for streets within the bounding box
 	const apiURL = "https://overpass-api.de/api/interpreter"
@@ -67,11 +67,11 @@ func getStreetGeometry(radius float64, latitude float64, longitude float64) [](f
 	query := fmt.Sprintf(`[out:json];(way["highway"="primary"](%s);way["highway"="secondary"](%s);way["highway"="tertiary"](%s);way["highway"="residential"](%s);way["highway"="service"](%s);way["highway"="unclassified"](%s););out geom;`,
 		bbox, bbox, bbox, bbox, bbox, bbox)
 
-	// Make the request
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer([]byte(query)))
-	resp, err := http.DefaultClient.Do(req)
+	fmt.Println(query)
 
-	return [(0, 0)]
+	// TODO: Make the request
+
+	return [][2]float64{}
 }
 
 
@@ -90,7 +90,8 @@ func HandleRequest(ctx context.Context, event *MyEvent) (*string, error) {
 	// Get the bounding box (1mi x 1mi) centered at user position
 	left, bottom, right, top := getUserBoundingBox(1, event.Latitude, event.Longitude)
 
-	// TODO: Selection
+	// Get the street geometry in a 1mi x 1mi box centered at user position
+	getStreetGeometry(1, event.Latitude, event.Longitude)
 
 	// For now, return the bounding box as JSON
 	response := fmt.Sprintf("{\"left\": %f, \"bottom\": %f, \"right\": %f, \"top\": %f}", left, bottom, right, top)

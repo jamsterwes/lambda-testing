@@ -15,62 +15,10 @@ import (
 	"github.com/valyala/fastjson"
 )
 
-type Location struct {
-	Latitude  float64 `json:"lat"`
-	Longitude float64 `json:"long"`
-}
-
-// GIS helper function
-func milesToDegLatitude(miles float64, latitude float64) float64 {
-	// Constants
-	const a = 3963.190592
-	const e = 0.081819191
-	phi := latitude * (math.Pi / 180)
-
-	// M = length of 1 radian of latitude in miles
-	M := a * (1 - e*e) / math.Pow((1-math.Pow(e*math.Sin(phi), 2)), 1.5)
-
-	// Convert miles to degrees latitude
-	return miles * 180 / (math.Pi * M)
-}
-
-// GIS helper function
-func milesToDegLongitude(miles float64, latitude float64) float64 {
-	// Constants
-	const a = 3963.190592
-	const e = 0.081819191
-	phi := latitude * (math.Pi / 180)
-
-	// N = length of 1 radian of longitude in miles
-	N := a * math.Cos(phi) / math.Pow(1-math.Pow(e*math.Sin(phi), 2), 0.5)
-
-	// Convert miles to degrees longitude
-	return miles * 180 / (math.Pi * N)
-}
-
-// Size - the size of the bounding box in miles
-// Latitude - the latitude of the center of the bounding box
-// Longitude - the longitude of the center of the bounding box
-// Returns: the bounding box in the form of
-// .. (left, bottom, right, top)
-func getUserBoundingBox(size float64, latitude float64, longitude float64) (float64, float64, float64, float64) {
-	// Convert miles to degrees latitude and longitude
-	degLat := milesToDegLatitude(size, latitude)
-	degLong := milesToDegLongitude(size, latitude)
-
-	// Calculate the bounding box
-	left := longitude - degLong/2
-	bottom := latitude - degLat/2
-	right := longitude + degLong/2
-	top := latitude + degLat/2
-
-	return left, bottom, right, top
-}
-
 // Get street geometry
-func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]Location {
+func getStreetGeometry(radius float64, center Location) [][]Location {
 	// Get bounding box
-	left, bottom, right, top := getUserBoundingBox(radius, latitude, longitude)
+	left, bottom, right, top := getUserBoundingBox(radius, center)
 
 	// Query OSM for streets within the bounding box
 	bbox := fmt.Sprintf("%f,%f,%f,%f", bottom, left, top, right)
@@ -187,15 +135,15 @@ func intersectLineRing(cx float64, cy float64, a float64, b float64, x1 float64,
 }
 
 // Returns [][lat, long]
-func intersectWayRing(wayGeom []Location, radius float64, latitude float64, longitude float64) []Location {
+func intersectWayRing(wayGeom []Location, radius float64, center Location) []Location {
 	// Step 0. Ignore empty geom
 	if len(wayGeom) == 0 {
 		return []Location{}
 	}
 
 	// Step 1. Get the two radii of the ellipse
-	a := milesToDegLongitude(radius, latitude)
-	b := milesToDegLatitude(radius, latitude)
+	a := milesToDegLongitude(radius, center.Latitude)
+	b := milesToDegLatitude(radius, center.Latitude)
 
 	// Step 2. Accumulate points
 	var points []Location
@@ -207,7 +155,7 @@ func intersectWayRing(wayGeom []Location, radius float64, latitude float64, long
 		y2 := wayGeom[i+1].Latitude
 
 		// Get solutions and concat
-		solutions := intersectLineRing(longitude, latitude, a, b, x1, y1, x2, y2)
+		solutions := intersectLineRing(center.Longitude, center.Latitude, a, b, x1, y1, x2, y2)
 		points = append(points, solutions...)
 	}
 
@@ -226,11 +174,11 @@ func HandleRequest(ctx context.Context, event *Location) (*PickupSelectionRespon
 
 	// Get the street geometry in a 1mi x 1mi box centered at user position
 	var points []Location
-	streetGeometries := getStreetGeometry(1, event.Latitude, event.Longitude)
+	streetGeometries := getStreetGeometry(1, *event)
 
 	for _, radius := range []float64{0.1, 0.25, 0.5, 0.75} {
 		for _, streetGeom := range streetGeometries {
-			solutions := intersectWayRing(streetGeom, radius, event.Latitude, event.Longitude)
+			solutions := intersectWayRing(streetGeom, radius, *event)
 			points = append(points, solutions...)
 		}
 	}

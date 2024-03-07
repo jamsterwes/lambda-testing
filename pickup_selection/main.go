@@ -25,7 +25,7 @@ func milesToDegLatitude(miles float64, latitude float64) float64 {
 	// Constants
 	const a = 3963.190592
 	const e = 0.081819191
-	phi := latitude * (3.141592653589793 / 180)
+	phi := latitude * (math.Pi / 180)
 
 	// M = length of 1 radian of latitude in miles
 	M := a * (1 - e*e) / math.Pow((1-math.Pow(e*math.Sin(phi), 2)), 1.5)
@@ -39,7 +39,7 @@ func milesToDegLongitude(miles float64, latitude float64) float64 {
 	// Constants
 	const a = 3963.190592
 	const e = 0.081819191
-	phi := latitude * (3.141592653589793 / 180)
+	phi := latitude * (math.Pi / 180)
 
 	// N = length of 1 radian of longitude in miles
 	N := a * math.Cos(phi) / math.Pow(1-math.Pow(e*math.Sin(phi), 2), 0.5)

@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+type PickupSelectionRequest = Location
+
 type PickupSelectionResponse struct {
 	Points     []Location `json:"points"`
 	PointCount int        `json:"pointCount"`
@@ -14,7 +16,7 @@ type PickupSelectionResponse struct {
 
 var RING_RADII []float64 = []float64{0.1, 0.25, 0.5, 0.75}
 
-func HandleRequest(ctx context.Context, event *Location) (*PickupSelectionResponse, error) {
+func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupSelectionResponse, error) {
 	if event == nil {
 		return nil, fmt.Errorf("received nil event")
 	}

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"math"
 	"os"
@@ -110,7 +110,7 @@ func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]
 		os.Exit(1)
 	}
 
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 
 	// Decode response JSON (elements only)
 	var geometries [][]Location

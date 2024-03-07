@@ -1,23 +1,22 @@
 package main
 
 import (
-	"fmt"
-	"math"
 	"context"
+	"fmt"
 	"io/ioutil"
-	"os"
 	"log"
-
+	"math"
+	"os"
 
 	"net/http"
 	"net/url"
 
-	"github.com/valyala/fastjson"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/valyala/fastjson"
 )
 
 type Location struct {
-	Latitude float64 `json:"lat"`
+	Latitude  float64 `json:"lat"`
 	Longitude float64 `json:"long"`
 }
 
@@ -29,7 +28,7 @@ func milesToDegLatitude(miles float64, latitude float64) float64 {
 	phi := latitude * (3.141592653589793 / 180)
 
 	// M = length of 1 radian of latitude in miles
-	M := a * (1 - e * e) / math.Pow((1 - math.Pow(e * math.Sin(phi), 2)), 1.5)
+	M := a * (1 - e*e) / math.Pow((1-math.Pow(e*math.Sin(phi), 2)), 1.5)
 
 	// Convert miles to degrees latitude
 	return miles * 180 / (math.Pi * M)
@@ -43,7 +42,7 @@ func milesToDegLongitude(miles float64, latitude float64) float64 {
 	phi := latitude * (3.141592653589793 / 180)
 
 	// N = length of 1 radian of longitude in miles
-	N := a * math.Cos(phi) / math.Pow(1 - math.Pow(e * math.Sin(phi), 2), 0.5)
+	N := a * math.Cos(phi) / math.Pow(1-math.Pow(e*math.Sin(phi), 2), 0.5)
 
 	// Convert miles to degrees longitude
 	return miles * 180 / (math.Pi * N)
@@ -60,10 +59,10 @@ func getUserBoundingBox(size float64, latitude float64, longitude float64) (floa
 	degLong := milesToDegLongitude(size, latitude)
 
 	// Calculate the bounding box
-	left := longitude - degLong / 2
-	bottom := latitude - degLat / 2
-	right := longitude + degLong / 2
-	top := latitude + degLat / 2
+	left := longitude - degLong/2
+	bottom := latitude - degLat/2
+	right := longitude + degLong/2
+	top := latitude + degLat/2
 
 	return left, bottom, right, top
 }
@@ -93,9 +92,9 @@ func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]
 	q.Set("data", query)
 
 	apiURL := &url.URL{
-		Scheme: "https",
-		Host: "overpass-api.de",
-		Path: "/api/interpreter",
+		Scheme:   "https",
+		Host:     "overpass-api.de",
+		Path:     "/api/interpreter",
 		RawQuery: q.Encode(),
 	}
 
@@ -129,7 +128,7 @@ func getStreetGeometry(radius float64, latitude float64, longitude float64) [][]
 		var streetGeometry []Location
 		for _, coords := range street.GetArray("geometry") {
 			streetGeometry = append(streetGeometry, Location{
-				Latitude: coords.GetFloat64("lat"),
+				Latitude:  coords.GetFloat64("lat"),
 				Longitude: coords.GetFloat64("lon"),
 			})
 		}
@@ -149,38 +148,38 @@ func intersectLineRing(cx float64, cy float64, a float64, b float64, x1 float64,
 
 	// Step 2. Solve
 	// Step 2a. Get quadratic coefficients
-	A := math.Pow(X2 - X1, 2.0) + math.Pow(Y2 - Y1, 2.0)
-	B := 2.0 * ( X1 * (X2 - X1) + Y1 * (Y2 - Y1) )
-	C := X1 * X1 + Y1 * Y1 - 1.0
+	A := math.Pow(X2-X1, 2.0) + math.Pow(Y2-Y1, 2.0)
+	B := 2.0 * (X1*(X2-X1) + Y1*(Y2-Y1))
+	C := X1*X1 + Y1*Y1 - 1.0
 
 	// Step 2b. Find discriminant
-	D := B * B - 4.0 * A * C
+	D := B*B - 4.0*A*C
 
 	// Step 2c. Get # of solutions
 	var ts []float64
-	if (D < 0) {
+	if D < 0 {
 		return []Location{}
-	} else if (D > 0) {
+	} else if D > 0 {
 		ts = append(ts,
-			(-B + math.Sqrt(D)) / (2 * A),
-			(-B - math.Sqrt(D)) / (2 * A),
+			(-B+math.Sqrt(D))/(2*A),
+			(-B-math.Sqrt(D))/(2*A),
 		)
 	} else {
-		ts = append(ts, -B / (2.0 * A))
+		ts = append(ts, -B/(2.0*A))
 	}
 
 	// Step 3. Convert t values into coords
 	var solutions []Location
 	for _, t := range ts {
 		// Ignore t outside (0, 1)
-		if (t < 0 || t > 1) {
+		if t < 0 || t > 1 {
 			continue
 		}
 
 		// Get coords
 		solutions = append(solutions, Location{
-			Longitude: (x2 - x1) * t + x1,
-			Latitude: (y2 - y1) * t + y1,
+			Longitude: (x2-x1)*t + x1,
+			Latitude:  (y2-y1)*t + y1,
 		})
 	}
 
@@ -200,7 +199,7 @@ func intersectWayRing(wayGeom []Location, radius float64, latitude float64, long
 
 	// Step 2. Accumulate points
 	var points []Location
-	for i, _ := range wayGeom[:len(wayGeom) - 1] {
+	for i := range wayGeom[:len(wayGeom)-1] {
 		// Get line segment
 		x1 := wayGeom[i].Longitude
 		y1 := wayGeom[i].Latitude
@@ -216,8 +215,8 @@ func intersectWayRing(wayGeom []Location, radius float64, latitude float64, long
 }
 
 type PickupSelectionResponse struct {
-	Points []Location `json:"points"`
-	PointCount int `json:"pointCount"`
+	Points     []Location `json:"points"`
+	PointCount int        `json:"pointCount"`
 }
 
 func HandleRequest(ctx context.Context, event *Location) (*PickupSelectionResponse, error) {
@@ -237,7 +236,7 @@ func HandleRequest(ctx context.Context, event *Location) (*PickupSelectionRespon
 	}
 
 	response := &PickupSelectionResponse{
-		Points: points,
+		Points:     points,
 		PointCount: len(points),
 	}
 

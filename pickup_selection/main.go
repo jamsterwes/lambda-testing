@@ -54,6 +54,8 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 		"car",
 	)
 
+	// TODO: use routes to select the best pickup points
+
 	// Return the response
 	response := &PickupSelectionResponse{
 		Routes: routes,

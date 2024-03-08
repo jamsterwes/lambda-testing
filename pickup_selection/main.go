@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -10,11 +11,19 @@ import (
 type PickupSelectionRequest = Location
 
 type PickupSelectionResponse struct {
-	Points     []Location `json:"points"`
-	PointCount int        `json:"pointCount"`
+	Routes []Route `json:"routes"`
 }
 
 var RING_RADII []float64 = []float64{0.1, 0.25, 0.5, 0.75}
+
+// TODO: write this to be more spatially-aware
+func CullPoints(points []Location, maxPoints int) []Location {
+	// Step 1. Randomly shuffle points
+	rand.Shuffle(len(points), func(i, j int) { points[i], points[j] = points[j], points[i] })
+
+	// Step 2. Return the first 10 points
+	return points[:min(len(points), maxPoints)]
+}
 
 func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupSelectionResponse, error) {
 	if event == nil {
@@ -35,10 +44,19 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 		}
 	}
 
+	// TODO: properly cull points
+	culledPoints := CullPoints(points, 10)
+
+	// Now call TomTom API
+	routes := makeBatchSSMDRoutingRequest(
+		[]Location{*event},
+		culledPoints,
+		"car",
+	)
+
 	// Return the response
 	response := &PickupSelectionResponse{
-		Points:     points,
-		PointCount: len(points),
+		Routes: routes,
 	}
 
 	return response, nil

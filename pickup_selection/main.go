@@ -51,7 +51,7 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	routes := makeBatchSSMDRoutingRequest(
 		[]Location{*event},
 		culledPoints,
-		"car",
+		"pedestrian",
 	)
 
 	// TODO: use routes to select the best pickup points

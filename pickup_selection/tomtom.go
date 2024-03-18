@@ -26,6 +26,16 @@ func locationToJSON(location Location) string {
 
 // Multiple Source Multiple Destination
 func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, travelMode string) []Route {
+	// If source empty, return empty
+	if len(sources) == 0 {
+		return []Route{}
+	}
+
+	// If destination empty, return empty
+	if len(destinations) == 0 {
+		return []Route{}
+	}
+
 	// Create the request body
 	var requestBody string = `{`
 
@@ -60,11 +70,8 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 		"travelMode": "` + travelMode + `"
 	}}`
 
-	fmt.Printf("Request body: %s\n", requestBody)
-
 	// Now get the URL
 	url := "https://api.tomtom.com/routing/matrix/2?key=" + os.Getenv("TOMTOM_API_KEY")
-	fmt.Printf("URL: %s\n", url)
 
 	// Make the request
 	res, err := http.Post(url, "application/json", strings.NewReader(requestBody))

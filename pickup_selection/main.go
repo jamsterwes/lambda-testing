@@ -33,7 +33,7 @@ type RouteSummary struct {
 	Source      Location `json:"source"`
 	Destination Location `json:"destination"`
 	Time        float64  `json:"time"`
-	Distance    float64  `json:"distance"`
+	Distance    float64  `json:"distance"` // in mi
 }
 
 const MetersToMiles float64 = 0.000621371
@@ -81,7 +81,7 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	// TODO: Now get inbound summaries
 	inboundRoutes := ORSMatrix(culledPoints, []Location{event.Source})
 	inboundSummaries := SummarizeRoutes(inboundRoutes)
-	fmt.Print(inboundSummaries)
+	fmt.Printf("Inbound Summaries: %+v\n", inboundSummaries)
 
 	// Now get outbound summaries
 	outboundRoutes := makeBatchSSMDRoutingRequest(
@@ -89,11 +89,18 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 		[]Location{event.Destination},
 		"car",
 	)
-
 	outboundSummaries := SummarizeRoutes(outboundRoutes)
-	fmt.Print(outboundSummaries)
+	fmt.Printf("Outbound Summaries: %+v\n", outboundSummaries)
 
-	// TODO: use summaries to rank points
+	// Build rides
+	rides := BuildRides(inboundSummaries, outboundSummaries)
+	fmt.Println(rides)
+
+	// Price rides
+	rides = PriceRides(rides)
+	fmt.Println(rides)
+
+	// TODO: do something with ride prices, etc
 
 	// Return the response
 	response := &PickupSelectionResponse{

@@ -17,6 +17,16 @@ func CeilToInt(x float64) int {
 
 // "walking"-only
 func ORSMatrix(sources []Location, destinations []Location) []Route {
+	// If source empty, return empty
+	if len(sources) == 0 {
+		return []Route{}
+	}
+
+	// If destination empty, return empty
+	if len(destinations) == 0 {
+		return []Route{}
+	}
+
 	// Create request body
 	requestBody := `{"locations":[`
 
@@ -70,6 +80,9 @@ func ORSMatrix(sources []Location, destinations []Location) []Route {
 		fmt.Printf("Error creating http request: %s", err)
 		os.Exit(1)
 	}
+
+	// Set the content type
+	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", os.Getenv("ORS_API_KEY"))
 
 	// Make the request
@@ -85,6 +98,9 @@ func ORSMatrix(sources []Location, destinations []Location) []Route {
 		fmt.Printf("Error reading response body: %s", err)
 		os.Exit(1)
 	}
+
+	// Print response
+	fmt.Printf("ORSMatrix: %s\n", resBody)
 
 	// Unpack JSON
 	var p fastjson.Parser
@@ -107,6 +123,8 @@ func ORSMatrix(sources []Location, destinations []Location) []Route {
 			})
 		}
 	}
+
+	fmt.Printf("ORSMatrix: %d routes\n", len(routes))
 
 	return routes
 }

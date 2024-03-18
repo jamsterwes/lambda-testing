@@ -15,7 +15,7 @@ type PickupSelectionRequest = struct {
 }
 
 type PickupSelectionResponse struct {
-	Routes []Route `json:"routes"`
+	Points []RouteSummary `json:"points"`
 }
 
 var RING_RADII []float64 = []float64{0.1, 0.25, 0.5, 0.75}
@@ -27,6 +27,32 @@ func CullPoints(points []Location, maxPoints int) []Location {
 
 	// Step 2. Return the first 10 points
 	return points[:min(len(points), maxPoints)]
+}
+
+type RouteSummary struct {
+	Source      Location `json:"source"`
+	Destination Location `json:"destination"`
+	Time        float64  `json:"time"`
+	Distance    float64  `json:"distance"`
+}
+
+const MetersToMiles float64 = 0.000621371
+
+func SummarizeRoutes(routes []Route) []RouteSummary {
+	var summaries []RouteSummary
+	for _, route := range routes {
+		summaries = append(summaries, RouteSummary{
+			Source:      route.Source,
+			Destination: route.Destination,
+			Time:        float64(route.TravelTimeInSeconds),
+			Distance:    float64(route.LengthInMeters) * MetersToMiles,
+		})
+	}
+	return summaries
+}
+
+func RankPickupPoints(inboundSummaries []RouteSummary, outboundSummaries []RouteSummary, maxPoints int) []RouteSummary {
+	return []RouteSummary{}
 }
 
 func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupSelectionResponse, error) {
@@ -48,22 +74,29 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 		}
 	}
 
+	// Cull the potential pickup points down to some predetermined threshold/density
 	// TODO: properly cull points
 	culledPoints := CullPoints(points, 10)
 
-	// Now call TomTom API
-	// // TODO: fix this
-	routes := makeBatchSSMDRoutingRequest(
-		[]Location{event.Source},
+	// TODO: Now get inbound summaries
+	var inboundSummaries []RouteSummary
+	fmt.Print(inboundSummaries)
+
+	// Now get outbound summaries
+	outboundRoutes := makeBatchSSMDRoutingRequest(
 		culledPoints,
-		"pedestrian",
+		[]Location{event.Destination},
+		"car",
 	)
 
-	// TODO: use routes to select the best pickup points
+	outboundSummaries := SummarizeRoutes(outboundRoutes)
+	fmt.Print(outboundSummaries)
+
+	// TODO: use summaries to rank points
 
 	// Return the response
 	response := &PickupSelectionResponse{
-		Routes: routes,
+		Points: outboundSummaries,
 	}
 
 	return response, nil

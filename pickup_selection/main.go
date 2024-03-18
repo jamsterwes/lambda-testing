@@ -79,7 +79,8 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	culledPoints := CullPoints(points, 10)
 
 	// TODO: Now get inbound summaries
-	var inboundSummaries []RouteSummary
+	inboundRoutes := ORSMatrix(culledPoints, []Location{event.Source})
+	inboundSummaries := SummarizeRoutes(inboundRoutes)
 	fmt.Print(inboundSummaries)
 
 	// Now get outbound summaries

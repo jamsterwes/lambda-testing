@@ -11,11 +11,13 @@ import (
 )
 
 type Route struct {
-	LengthInMeters        int    `json:"lengthInMeters"`
-	TravelTimeInSeconds   int    `json:"travelTimeInSeconds"`
-	TrafficDelayInSeconds int    `json:"trafficDelayInSeconds"`
-	DepartureTime         string `json:"departureTime"`
-	ArrivalTime           string `json:"arrivalTime"`
+	LengthInMeters        int      `json:"lengthInMeters"`
+	TravelTimeInSeconds   int      `json:"travelTimeInSeconds"`
+	TrafficDelayInSeconds int      `json:"trafficDelayInSeconds"`
+	DepartureTime         string   `json:"departureTime"`
+	ArrivalTime           string   `json:"arrivalTime"`
+	Source                Location `json:"source"`
+	Destination           Location `json:"destination"`
 }
 
 func locationToJSON(location Location) string {
@@ -99,6 +101,8 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 			TrafficDelayInSeconds: routeSummary.GetInt("trafficDelayInSeconds"),
 			DepartureTime:         string(routeSummary.GetStringBytes("departureTime")),
 			ArrivalTime:           string(routeSummary.GetStringBytes("arrivalTime")),
+			Source:                sources[route.GetInt("originIndex")],
+			Destination:           destinations[route.GetInt("destinationIndex")],
 		}
 
 		// Append the new route to the routes slice

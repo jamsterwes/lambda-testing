@@ -8,7 +8,11 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-type PickupSelectionRequest = Location
+type PickupSelectionRequest = struct {
+	Source      Location `json:"source"`
+	Destination Location `json:"destination"`
+	MaxPoints   int      `json:"maxPoints"`
+}
 
 type PickupSelectionResponse struct {
 	Routes []Route `json:"routes"`
@@ -32,14 +36,14 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 
 	// Get the street geometry in a 1mi x 1mi box centered at user position
 	var points []Location
-	streetGeometries := getStreetGeometry(1, *event)
+	streetGeometries := getStreetGeometry(1, event.Source)
 
 	// Loop through 4 preset radii to find the intersecting points
 	for _, radius := range RING_RADII {
 		// For this specific radius, find the intersecting points
 		// and append them to the points slice
 		for _, streetGeom := range streetGeometries {
-			solutions := intersectWayRing(streetGeom, radius, *event)
+			solutions := intersectWayRing(streetGeom, radius, event.Source)
 			points = append(points, solutions...)
 		}
 	}
@@ -48,8 +52,9 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	culledPoints := CullPoints(points, 10)
 
 	// Now call TomTom API
+	// // TODO: fix this
 	routes := makeBatchSSMDRoutingRequest(
-		[]Location{*event},
+		[]Location{event.Source},
 		culledPoints,
 		"pedestrian",
 	)

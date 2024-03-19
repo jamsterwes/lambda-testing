@@ -12,7 +12,7 @@ import (
 
 type PricesRequest struct {
 	Miles   []float32 `json:"miles"`
-	Minutes []float32 `json:"minutes"`
+	Seconds []float32 `json:"seconds"`
 }
 
 type PricesResponse struct {
@@ -32,7 +32,7 @@ func HandleRequest(ctx context.Context, event *PricesRequest) (*PricesResponse, 
 	for i, _ := range event.Miles {
 		mile_price_pairs = append(mile_price_pairs, [2]float32{
 			event.Miles[i],
-			event.Minutes[i],
+			event.Seconds[i],
 		})
 	}
 	input, _ := tf.NewTensor(mile_price_pairs)

@@ -77,3 +77,46 @@ func intersectWayRing(wayGeom []Location, radius float64, center Location) []Loc
 
 	return points
 }
+
+// Cull by angle
+// - numberSegments int: number of segments to divide the circle into
+// - pointsPerSegment int: number of points to keep per segment
+func cullByAngle(points []Location, center Location, numberSegments int, pointsPerSegment int) []Location {
+	// Step 0. Ignore empty points
+	if len(points) == 0 {
+		return []Location{}
+	}
+
+	// Step 1. Allocate space for the segment indexes
+	segmentIndexes := make([][]int, numberSegments)
+
+	// Step 2. Sort each point into its segment
+	for i, point := range points {
+		// Get angle of point
+		angle := math.Atan2(point.Latitude-center.Latitude, point.Longitude-center.Longitude)
+
+		// Turn angle into segment index
+		segmentIndex := int(angle / (2 * math.Pi / float64(numberSegments)))
+
+		// Safety: ensure segmentIndex is within bounds
+		segmentIndex = segmentIndex % numberSegments
+
+		// Ignore if segment is full
+		if len(segmentIndexes[segmentIndex]) >= pointsPerSegment {
+			continue
+		}
+
+		// Now append this index into segmentIndexes
+		segmentIndexes[segmentIndex] = append(segmentIndexes[segmentIndex], i)
+	}
+
+	// Step 3. Extract the points from the segment indexes
+	var culledPoints []Location
+	for _, segment := range segmentIndexes {
+		for _, index := range segment {
+			culledPoints = append(culledPoints, points[index])
+		}
+	}
+
+	return culledPoints
+}

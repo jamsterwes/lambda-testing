@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -14,7 +15,7 @@ type PickupSelectionRequest = struct {
 }
 
 type PickupSelectionResponse struct {
-	Points []RouteSummary `json:"points"`
+	Rides []Ride `json:"rides"`
 }
 
 var RING_RADII []float64 = []float64{0.1, 0.25, 0.5, 0.75}
@@ -95,10 +96,14 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	fmt.Println(rides)
 
 	// TODO: do something with ride prices, etc
+	// sort rides by price
+	sort.Slice(rides, func(i, j int) bool {
+		return rides[i].Price < rides[j].Price
+	})
 
 	// Return the response
 	response := &PickupSelectionResponse{
-		Points: outboundSummaries,
+		Rides: rides,
 	}
 
 	return response, nil

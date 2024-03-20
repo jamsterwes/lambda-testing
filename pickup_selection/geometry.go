@@ -95,6 +95,11 @@ func cullByAngle(points []Location, center Location, numberSegments int, pointsP
 		// Get angle of point
 		angle := math.Atan2(point.Latitude-center.Latitude, point.Longitude-center.Longitude)
 
+		// Wrap angle to [0, 2pi)
+		if angle < 0 {
+			angle += 2 * math.Pi
+		}
+
 		// Turn angle into segment index
 		segmentIndex := int(angle / (2 * math.Pi / float64(numberSegments)))
 

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/rand"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -19,15 +18,8 @@ type PickupSelectionResponse struct {
 }
 
 var RING_RADII []float64 = []float64{0.1, 0.25, 0.5, 0.75}
-
-// TODO: write this to be more spatially-aware
-func CullPoints(points []Location, maxPoints int) []Location {
-	// Step 1. Randomly shuffle points
-	rand.Shuffle(len(points), func(i, j int) { points[i], points[j] = points[j], points[i] })
-
-	// Step 2. Return the first 10 points
-	return points[:min(len(points), maxPoints)]
-}
+var CULL_SEGMENTS []int = []int{4, 4, 3, 3}
+var CULL_AMOUNTS []int = []int{1, 1, 1, 1}
 
 type RouteSummary struct {
 	Source      Location `json:"source"`
@@ -61,24 +53,27 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	}
 
 	// Get the street geometry in a 1mi x 1mi box centered at user position
-	var points []Location
+	var culledPoints []Location
 	streetGeometries := getStreetGeometry(1, event.Source)
 
 	// Loop through 4 preset radii to find the intersecting points
-	for _, radius := range RING_RADII {
+	for ringID, radius := range RING_RADII {
+		// Store the points for this ring
+		var points []Location
+
 		// For this specific radius, find the intersecting points
 		// and append them to the points slice
 		for _, streetGeom := range streetGeometries {
 			solutions := intersectWayRing(streetGeom, radius, event.Source)
 			points = append(points, solutions...)
 		}
+
+		// Now cull the points
+		points = cullByAngle(points, event.Source, CULL_SEGMENTS[ringID], CULL_AMOUNTS[ringID])
+		culledPoints = append(culledPoints, points...)
 	}
 
-	// Cull the potential pickup points down to some predetermined threshold/density
-	// TODO: properly cull points
-	culledPoints := CullPoints(points, 10)
-
-	// TODO: Now get inbound summaries
+	// Now get inbound summaries
 	inboundRoutes := ORSMatrix(culledPoints, []Location{event.Source})
 	inboundSummaries := SummarizeRoutes(inboundRoutes)
 	fmt.Printf("Inbound Summaries: %+v\n", inboundSummaries)
@@ -94,7 +89,6 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 
 	// Build rides
 	rides := BuildRides(inboundSummaries, outboundSummaries)
-	fmt.Println(rides)
 
 	// Price rides
 	rides = PriceRides(rides)

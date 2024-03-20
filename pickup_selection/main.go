@@ -18,7 +18,7 @@ type PickupSelectionResponse struct {
 }
 
 var RING_RADII []float64 = []float64{0.1, 0.25, 0.5, 0.75}
-var CULL_SEGMENTS []int = []int{6, 8, 10, 12}
+var CULL_SEGMENTS []int = []int{4, 4, 3, 3}
 var CULL_AMOUNTS []int = []int{1, 1, 1, 1}
 
 type RouteSummary struct {
@@ -53,28 +53,34 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	}
 
 	// Get the street geometry in a 1mi x 1mi box centered at user position
-	var points []Location
+	var culledPoints []Location
 	streetGeometries := getStreetGeometry(1, event.Source)
 
 	// Loop through 4 preset radii to find the intersecting points
 	for ringID, radius := range RING_RADII {
+		// Store the points for this ring
+		var points []Location
+
 		// For this specific radius, find the intersecting points
 		// and append them to the points slice
 		for _, streetGeom := range streetGeometries {
 			solutions := intersectWayRing(streetGeom, radius, event.Source)
-			culledSolutions := cullByAngle(solutions, event.Source, CULL_SEGMENTS[ringID], CULL_AMOUNTS[ringID])
-			points = append(points, culledSolutions...)
+			points = append(points, solutions...)
 		}
+
+		// Now cull the points
+		points = cullByAngle(points, event.Source, CULL_SEGMENTS[ringID], CULL_AMOUNTS[ringID])
+		culledPoints = append(culledPoints, points...)
 	}
 
 	// Now get inbound summaries
-	inboundRoutes := ORSMatrix(points, []Location{event.Source})
+	inboundRoutes := ORSMatrix(culledPoints, []Location{event.Source})
 	inboundSummaries := SummarizeRoutes(inboundRoutes)
 	fmt.Printf("Inbound Summaries: %+v\n", inboundSummaries)
 
 	// Now get outbound summaries
 	outboundRoutes := makeBatchSSMDRoutingRequest(
-		points,
+		culledPoints,
 		[]Location{event.Destination},
 		"car",
 	)

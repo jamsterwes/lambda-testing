@@ -92,7 +92,7 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 	var routes []Route
 	v, err := p.Parse(string(resBody))
 	if err != nil {
-		fmt.Printf("Error parsing response body: %s", err)
+		fmt.Printf("Error parsing response JSON: %s", err)
 		os.Exit(1)
 	}
 

@@ -48,52 +48,84 @@ func RankPickupPoints(inboundSummaries []RouteSummary, outboundSummaries []Route
 	return []RouteSummary{}
 }
 
+func StreamPickupPoints(center Location, streetGeometries [][]Location) []Location {
+	pointsChannel := make(chan []Location)
+
+	// Loop through 4 preset radii to find the intersecting points
+	for ringID, radius := range RING_RADII {
+		go func() {
+			// Store the points for this ring
+			var points []Location
+
+			// For this specific radius, find the intersecting points
+			// and append them to the points slice
+			for _, streetGeom := range streetGeometries {
+				solutions := intersectWayRing(streetGeom, radius, center)
+				points = append(points, solutions...)
+			}
+
+			// Now cull the points
+			pointsChannel <- cullByAngle(points, center, CULL_SEGMENTS[ringID], CULL_AMOUNTS[ringID])
+		}()
+	}
+
+	// Receive from channels
+	var culledPoints []Location
+	for range RING_RADII {
+		culledPoints = append(culledPoints, <-pointsChannel...)
+	}
+
+	// Return response
+	return culledPoints
+}
+
+func StreamBuildRides(source Location, destination Location, pickups []Location) []Ride {
+	// Make a channel to receive inboundSummaries
+	inboundSummariesChannel := make(chan []RouteSummary)
+
+	// Make a channel to receive outboundSummaries
+	outboundSummariesChannel := make(chan []RouteSummary)
+
+	// Goroutine to retrieve inbound summaries
+	go func(c chan []RouteSummary) {
+		// Go get inbound summaries
+		inboundRoutes := ORSMatrix(pickups, []Location{source})
+		inboundSummaries := SummarizeRoutes(inboundRoutes)
+		c <- inboundSummaries
+	}(inboundSummariesChannel)
+
+	// Goroutine to retrieve outbound summaries
+	go func(c chan []RouteSummary) {
+		// Go get inbound summaries
+		outboundRoutes := makeBatchSSMDRoutingRequest(
+			pickups,
+			[]Location{destination},
+			"car",
+		)
+		outboundSummaries := SummarizeRoutes(outboundRoutes)
+		c <- outboundSummaries
+	}(outboundSummariesChannel)
+
+	// Now build rides
+	inboundSummaries := <-inboundSummariesChannel
+	outboundSummaries := <-outboundSummariesChannel
+	return BuildRides(inboundSummaries, outboundSummaries)
+}
+
 func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupSelectionResponse, error) {
 	if event == nil {
 		return nil, fmt.Errorf("received nil event")
 	}
 
 	// Get the street geometry in a 1mi x 1mi box centered at user position
-	var culledPoints []Location
 	streetGeometries := getStreetGeometry(1, event.Source)
+	culledPoints := StreamPickupPoints(event.Source, streetGeometries)
 
-	// Loop through 4 preset radii to find the intersecting points
-	for ringID, radius := range RING_RADII {
-		// Store the points for this ring
-		var points []Location
-
-		// For this specific radius, find the intersecting points
-		// and append them to the points slice
-		for _, streetGeom := range streetGeometries {
-			solutions := intersectWayRing(streetGeom, radius, event.Source)
-			points = append(points, solutions...)
-		}
-
-		// Now cull the points
-		points = cullByAngle(points, event.Source, CULL_SEGMENTS[ringID], CULL_AMOUNTS[ringID])
-		culledPoints = append(culledPoints, points...)
-	}
-
-	// Now get inbound summaries
-	inboundRoutes := ORSMatrix(culledPoints, []Location{event.Source})
-	inboundSummaries := SummarizeRoutes(inboundRoutes)
-	fmt.Printf("Inbound Summaries: %+v\n", inboundSummaries)
-
-	// Now get outbound summaries
-	outboundRoutes := makeBatchSSMDRoutingRequest(
-		culledPoints,
-		[]Location{event.Destination},
-		"car",
-	)
-	outboundSummaries := SummarizeRoutes(outboundRoutes)
-	fmt.Printf("Outbound Summaries: %+v\n", outboundSummaries)
-
-	// Build rides
-	rides := BuildRides(inboundSummaries, outboundSummaries)
+	// Build rides in parallel
+	rides := StreamBuildRides(event.Source, event.Destination, culledPoints)
 
 	// Price rides
 	rides = PriceRides(rides)
-	fmt.Println(rides)
 
 	// TODO: do something with ride prices, etc
 	// sort rides by price

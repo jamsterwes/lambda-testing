@@ -105,6 +105,10 @@ func ORSMatrix(sources []Location, destinations []Location) []Route {
 	// Unpack JSON
 	var p fastjson.Parser
 	v, err := p.Parse(string(resBody))
+	if err != nil {
+		fmt.Printf("Error reading response JSON: %s", err)
+		os.Exit(1)
+	}
 
 	// Get routes
 	var routes []Route

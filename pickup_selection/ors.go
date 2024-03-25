@@ -99,9 +99,6 @@ func ORSMatrix(sources []Location, destinations []Location) []Route {
 		os.Exit(1)
 	}
 
-	// Print response
-	fmt.Printf("ORSMatrix: %s\n", resBody)
-
 	// Unpack JSON
 	var p fastjson.Parser
 	v, err := p.Parse(string(resBody))
@@ -127,8 +124,6 @@ func ORSMatrix(sources []Location, destinations []Location) []Route {
 			})
 		}
 	}
-
-	fmt.Printf("ORSMatrix: %d routes\n", len(routes))
 
 	return routes
 }

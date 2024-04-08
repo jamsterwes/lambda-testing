@@ -89,7 +89,8 @@ func StreamBuildRides(source Location, destination Location, pickups []Location)
 	// Goroutine to retrieve inbound summaries
 	go func(c chan []RouteSummary) {
 		// Go get inbound summaries
-		inboundRoutes := ORSMatrix(pickups, []Location{source})
+		urlTest := "nil"
+		inboundRoutes := ORSMatrix(pickups, []Location{source}, urlTest)
 		inboundSummaries := SummarizeRoutes(inboundRoutes)
 		c <- inboundSummaries
 	}(inboundSummariesChannel)

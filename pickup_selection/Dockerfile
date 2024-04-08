@@ -9,3 +9,4 @@ RUN go build -tags lambda.norpc -o main .
 FROM public.ecr.aws/lambda/provided:al2023
 COPY --from=build /helloworld/main ./main
 ENTRYPOINT [ "./main" ]
+

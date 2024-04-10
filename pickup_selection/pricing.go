@@ -85,6 +85,7 @@ func PriceRides(rides []Ride) []Ride {
 
 	// Make HTTP request to pricing service
 	url := os.Getenv("PRICING_API_URL")
+
 	fmt.Printf("Making request to %s\n", url)
 	fmt.Printf("Request body: %s\n", requestBody)
 	req, err := http.Post(url, "application/json", strings.NewReader(requestBody))

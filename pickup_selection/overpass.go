@@ -12,7 +12,7 @@ import (
 )
 
 // Get street geometry
-func getStreetGeometry(radius float64, center Location) [][]Location {
+func getStreetGeometry(radius float64, center Location, test_APIURL string) [][]Location {
 	// Get bounding box
 	left, bottom, right, top := getUserBoundingBox(radius, center)
 
@@ -42,7 +42,16 @@ func getStreetGeometry(radius float64, center Location) [][]Location {
 		RawQuery: q.Encode(),
 	}
 
-	req, err := http.NewRequest(http.MethodGet, apiURL.String(), nil)
+	var url string
+	if test_APIURL == "nil" {
+		url = apiURL.String()
+	} else {
+		url = test_APIURL
+	}
+
+	//req, err := http.NewRequest(http.MethodGet, apiURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+
 	if err != nil {
 		fmt.Printf("Error creating http request: %s", err)
 		os.Exit(1)

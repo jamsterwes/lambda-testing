@@ -35,7 +35,7 @@ func TestCullByAngle(t *testing.T) {
 		Location{Latitude: 44.4525, Longitude: -93.423},
 		4,
 		1)
-	if response != nil {
+	if response == nil {
 		t.Errorf("Result was incorrect, got: nil")
 	}
 }

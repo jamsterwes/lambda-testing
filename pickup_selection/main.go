@@ -119,7 +119,7 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	}
 
 	// Get the street geometry in a 1mi x 1mi box centered at user position
-	streetGeometries := getStreetGeometry(1, event.Source)
+	streetGeometries := getStreetGeometry(1, event.Source, "nil")
 	culledPoints := StreamPickupPoints(event.Source, streetGeometries)
 
 	// Build rides in parallel

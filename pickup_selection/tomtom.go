@@ -71,7 +71,7 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 	}}`
 
 	// Now get the URL
-	url := "https://api.tomtom.com/routing/matrix/2?key=" + os.Getenv("TOMTOM_API_KEY")
+	url := os.Getenv("TOMTOM_API_URL") + os.Getenv("TOMTOM_API_KEY")
 
 	// Make the request
 	res, err := http.Post(url, "application/json", strings.NewReader(requestBody))

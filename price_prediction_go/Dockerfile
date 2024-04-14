@@ -1,4 +1,4 @@
-FROM golang:1.22.1 as build
+FROM golang:1.22.1-alpine3.19 as build
 WORKDIR /helloworld
 
 # Copy dependencies list
@@ -11,11 +11,11 @@ RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-c
 RUN mkdir ./tf
 RUN tar -C ./tf -xzf libtensorflow-cpu-linux-x86_64-2.9.1.tar.gz
 RUN tar -C /usr/local -xzf libtensorflow-cpu-linux-x86_64-2.9.1.tar.gz
-RUN ldconfig
+RUN ldconfig /etc/ld.so.conf.d
 
 # Build with optional lambda.norpc tag
-COPY main.go .
-RUN go build -tags lambda.norpc -o main main.go
+COPY *.go .
+RUN go build -tags lambda.norpc -o main .
 
 # Copy artifacts to a clean image
 FROM public.ecr.aws/lambda/provided:al2023

@@ -11,12 +11,14 @@ import (
 	"github.com/valyala/fastjson"
 )
 
+/////////
+
 func CeilToInt(x float64) int {
 	return int(math.Ceil(x))
 }
 
 // "walking"-only
-func ORSMatrix(sources []Location, destinations []Location) []Route {
+func ORSMatrix(sources []Location, destinations []Location, APIURL string) []Route {
 	// If source empty, return empty
 	if len(sources) == 0 {
 		return []Route{}
@@ -72,8 +74,12 @@ func ORSMatrix(sources []Location, destinations []Location) []Route {
 	requestBody += `,"units":"m"}`
 
 	// Send the request to the ORS API
-	url := "https://api.openrouteservice.org/v2/matrix/foot-walking"
-
+	var url string
+	if APIURL == "nil" {
+		url = "https://api.openrouteservice.org/v2/matrix/foot-walking"
+	} else {
+		url = APIURL
+	}
 	// Set the HTTP header Authorization to API Key
 	req, err := http.NewRequest("POST", url, strings.NewReader(requestBody))
 	if err != nil {
@@ -124,6 +130,5 @@ func ORSMatrix(sources []Location, destinations []Location) []Route {
 			})
 		}
 	}
-
 	return routes
 }

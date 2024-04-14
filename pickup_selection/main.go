@@ -89,7 +89,8 @@ func StreamBuildRides(source Location, destination Location, pickups []Location)
 	// Goroutine to retrieve inbound summaries
 	go func(c chan []RouteSummary) {
 		// Go get inbound summaries
-		inboundRoutes := ORSMatrix(pickups, []Location{source})
+		urlTest := "nil"
+		inboundRoutes := ORSMatrix(pickups, []Location{source}, urlTest)
 		inboundSummaries := SummarizeRoutes(inboundRoutes)
 		c <- inboundSummaries
 	}(inboundSummariesChannel)
@@ -118,7 +119,7 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	}
 
 	// Get the street geometry in a 1mi x 1mi box centered at user position
-	streetGeometries := getStreetGeometry(1, event.Source)
+	streetGeometries := getStreetGeometry(1, event.Source, "nil")
 	culledPoints := StreamPickupPoints(event.Source, streetGeometries)
 
 	// Build rides in parallel

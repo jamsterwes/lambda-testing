@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/valyala/fastjson"
@@ -34,6 +35,16 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 	// If destination empty, return empty
 	if len(destinations) == 0 {
 		return []Route{}
+	}
+
+	// Get PromCache
+	cache := NewPromCache()
+
+	// Get ttl setting
+	ttl, err := strconv.Atoi(os.Getenv("TT_TTL"))
+	if err != nil {
+		// Default to 5min ttl
+		ttl = 60 * 5
 	}
 
 	// Create the request body
@@ -114,6 +125,9 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 
 		// Append the new route to the routes slice
 		routes = append(routes, newRoute)
+
+		// Store this route in memcache
+		cache.StoreRoute("tt", newRoute, int32(ttl))
 	}
 
 	return routes

@@ -26,7 +26,7 @@ func NewPromCache() *PromCache {
 // Function to store Route in cache
 func (cache *PromCache) StoreRoute(prefix string, route Route, ttl int32) {
 	// Get the key for this route
-	key := fmt.Sprintf("%s-%.6f-%.6f-%.6f-%.6f",
+	key := fmt.Sprintf("%s_%.6f_%.6f_%.6f_%.6f",
 		prefix,
 		route.Source.Latitude,
 		route.Source.Longitude,
@@ -39,13 +39,19 @@ func (cache *PromCache) StoreRoute(prefix string, route Route, ttl int32) {
 		route.TravelTimeInSeconds,
 		route.TrafficDelayInSeconds)
 
+	// Debug key
+	fmt.Printf("stored key: %s\n", key)
+
 	// Store in cache
-	cache.client.Set(&memcache.Item{
+	err := cache.client.Set(&memcache.Item{
 		Key:        key,
 		Value:      []byte(routeJSON),
 		Flags:      0,
 		Expiration: ttl,
 	})
+	if err != nil {
+		fmt.Printf("error: %+v\n", err)
+	}
 }
 
 // Helper function to get route from JSON
@@ -71,7 +77,7 @@ func ParseRouteJSON(routeJSON string, source Location, destination Location) *Ro
 // Function to retrieve Route from cache (or nil if not found)
 func (cache *PromCache) GetRoute(prefix string, source Location, destination Location) *Route {
 	// Get the key for this route
-	key := fmt.Sprintf("%s-%.6f-%.6f-%.6f-%.6f",
+	key := fmt.Sprintf("%s_%.6f_%.6f_%.6f_%.6f",
 		prefix,
 		source.Latitude,
 		source.Longitude,
@@ -81,6 +87,9 @@ func (cache *PromCache) GetRoute(prefix string, source Location, destination Loc
 	// Get from cache
 	data, err := cache.client.Get(key)
 	if err != nil {
+		if err != memcache.ErrCacheMiss {
+			fmt.Printf("error: %+v\n", err)
+		}
 		return nil
 	}
 
@@ -89,38 +98,57 @@ func (cache *PromCache) GetRoute(prefix string, source Location, destination Loc
 }
 
 // Function to retrieve multiple Routes from cache (or nil if not found)
-// TODO: use this instead
-func (cache *PromCache) GetRoutes(prefix string, sources []Location, destinations []Location) []Route {
+// Returns:
+// 1. Routes from cache
+// 2. Sources not found
+// 3. Destinations not found
+func (cache *PromCache) GetRoutes(prefix string, sources []Location, destinations []Location) ([]Route, []Location, []Location) {
 	// Store the (src,dest) per key for quick translation
 	srcs := make(map[string]Location)
-	dests := make(map[string]Location)
+	dsts := make(map[string]Location)
 
 	// Get the keys for these routes
 	var keys []string
 	for i := range sources {
-		key := fmt.Sprintf("%s-%.6f-%.6f-%.6f-%.6f",
+		key := fmt.Sprintf("%s_%.6f_%.6f_%.6f_%.6f",
 			prefix,
 			sources[i].Latitude,
 			sources[i].Longitude,
 			destinations[i].Latitude,
 			destinations[i].Longitude)
 		srcs[key] = sources[i]
-		dests[key] = destinations[i]
+		dsts[key] = destinations[i]
 		keys = append(keys, key)
 	}
 
 	// Get from cache
 	dataMap, err := cache.client.GetMulti(keys)
 	if err != nil {
-		return nil
+		fmt.Printf("error: %+v\n", err)
+		return nil, sources, destinations
 	}
 
 	// Store routes
 	var routes []Route
 	for k, v := range dataMap {
+		// Get src,dest for this key
 		src := srcs[k]
-		dest := dests[k]
+		dest := dsts[k]
+
+		// Remove this key from srcs+dsts
+		delete(srcs, k)
+		delete(dsts, k)
+
+		// Append to routes
 		routes = append(routes, *ParseRouteJSON(string(v.Value), src, dest))
 	}
-	return routes
+
+	var missedSrcs []Location
+	var missedDsts []Location
+	for k := range srcs {
+		missedSrcs = append(missedSrcs, srcs[k])
+		missedDsts = append(missedDsts, dsts[k])
+	}
+
+	return routes, missedSrcs, missedDsts
 }

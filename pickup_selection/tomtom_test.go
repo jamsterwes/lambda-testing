@@ -20,6 +20,7 @@ func TestLocationToJSON(t *testing.T) {
 	}
 }
 
+// TODO: rewrite to handle the non-matrix nature of this request now
 func TestMakeBatchSSMDRoutingRequest(t *testing.T) {
 
 	test_sources := []Location{
@@ -43,7 +44,7 @@ func TestMakeBatchSSMDRoutingRequest(t *testing.T) {
 	ThirdPartyURL := ts.URL
 	t.Setenv("TOMTOM_API_URL", string(ThirdPartyURL))
 
-	routes := makeBatchSSMDRoutingRequest(test_sources, test_destinations, "car")
+	routes := ttCalculateRouteURL(test_sources, test_destinations, "car")
 
 	if routes[0].LengthInMeters != 681999 {
 		t.Errorf("Fail: Unexpected return from function")

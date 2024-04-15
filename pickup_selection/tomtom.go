@@ -25,15 +25,18 @@ func locationToJSON(location Location) string {
 	return fmt.Sprintf(`{"latitude": %f, "longitude": %f}`, location.Latitude, location.Longitude)
 }
 
-// Multiple Source Multiple Destination
-func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, travelMode string) []Route {
+func ttCalculateRouteURL(src Location, dst Location) string {
+	return fmt.Sprintf(`/calculateRoute/%.6f,%.6f:%.6f,%.6f/json?travelMode=car&routeType=fastest&traffic=true&departAt=now&maxAlternatives=0&routeRepresentation=summaryOnly`,
+		src.Latitude,
+		src.Longitude,
+		dst.Latitude,
+		dst.Longitude)
+}
+
+// Get a list of routes from TomTom
+func getTomTomRoutes(sources []Location, destination Location) []Route {
 	// If source empty, return empty
 	if len(sources) == 0 {
-		return []Route{}
-	}
-
-	// If destination empty, return empty
-	if len(destinations) == 0 {
 		return []Route{}
 	}
 
@@ -47,39 +50,24 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 		ttl = 60 * 5
 	}
 
-	// Create the request body
-	var requestBody string = `{`
+	// TODO: Pull from cache
 
-	// Add the origins to the body
-	requestBody += `"origins": [`
-	for i, source := range sources {
-		requestBody += `{
-			"point": ` + locationToJSON(source) + `
-		}`
-		if i < len(sources)-1 {
-			requestBody += `,`
-		}
+	// Start request body
+	requestBody := `{"batchItems":[`
+
+	// Add (src,dst) pairs
+	for i := range sources {
+		requestBody += fmt.Sprintf(`{"query": "%s"},`, ttCalculateRouteURL(sources[i], destination))
 	}
-	requestBody += `],`
 
-	// Add the destinations to the body
-	requestBody += `"destinations": [`
-	for i, destination := range destinations {
-		requestBody += `{
-			"point": ` + locationToJSON(destination) + `
-		}`
-		if i < len(destinations)-1 {
-			requestBody += `,`
-		}
-	}
-	requestBody += `],`
+	// Trim trailing comma
+	requestBody = requestBody[:len(requestBody)-1]
 
-	// Add the rest of the body
-	requestBody += `"options": {
-		"traffic": "live",
-		"departAt": "now",
-		"travelMode": "` + travelMode + `"
-	}}`
+	// Finish request body
+	requestBody += `]}`
+
+	// PRINT REQUEST BODY
+	fmt.Println(string(requestBody))
 
 	// Now get the URL
 	url := os.Getenv("TOMTOM_API_URL") + os.Getenv("TOMTOM_API_KEY")
@@ -98,6 +86,9 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 		os.Exit(1)
 	}
 
+	// PRINT RESPONSE BODY
+	fmt.Println(string(resBody))
+
 	// Decode the response JSON
 	var p fastjson.Parser
 	var routes []Route
@@ -108,9 +99,9 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 	}
 
 	// Step 1. Loop through the data array
-	for _, route := range v.GetArray("data") {
+	for _, route := range v.GetArray("batchItems") {
 		// Get the route summary
-		routeSummary := route.Get("routeSummary")
+		routeSummary := route.Get("response").GetArray("routes")[0].Get("summary")
 
 		// Create a new route
 		newRoute := Route{
@@ -120,7 +111,7 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 			DepartureTime:         string(routeSummary.GetStringBytes("departureTime")),
 			ArrivalTime:           string(routeSummary.GetStringBytes("arrivalTime")),
 			Source:                sources[route.GetInt("originIndex")],
-			Destination:           destinations[route.GetInt("destinationIndex")],
+			Destination:           destination,
 		}
 
 		// Append the new route to the routes slice

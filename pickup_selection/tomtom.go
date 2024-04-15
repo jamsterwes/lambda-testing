@@ -40,6 +40,17 @@ func getTomTomRoutes(sources []Location, destination Location) []Route {
 		return []Route{}
 	}
 
+	// Make response array
+	routes := make([]Route, len(sources))
+
+	// Build src lookup, destinations
+	lookup := make(map[Location]int)
+	destinations := make([]Location, len(sources))
+	for i, src := range sources {
+		lookup[src] = i
+		destinations[i] = destination
+	}
+
 	// Get PromCache
 	cache := NewPromCache()
 
@@ -50,14 +61,26 @@ func getTomTomRoutes(sources []Location, destination Location) []Route {
 		ttl = 60 * 5
 	}
 
-	// TODO: Pull from cache
+	// Pull from cache
+	cachedRoutes, missedSrcs, _ := cache.GetRoutes("tt", sources, destinations)
+	for _, route := range cachedRoutes {
+		// Insert into proper index
+		i := lookup[route.Source]
+		routes[i] = route
+	}
+
+	// If there were no missed sources, simply return routes
+	if len(missedSrcs) == 0 {
+		return routes
+	}
 
 	// Start request body
 	requestBody := `{"batchItems":[`
 
 	// Add (src,dst) pairs
-	for i := range sources {
-		requestBody += fmt.Sprintf(`{"query": "%s"},`, ttCalculateRouteURL(sources[i], destination))
+	for _, source := range missedSrcs {
+		fmt.Printf("Cache hit @ (%.6f, %.6f)->(%.6f, %.6f)\n", source.Latitude, source.Longitude, destination.Latitude, destination.Longitude)
+		requestBody += fmt.Sprintf(`{"query": "%s"},`, ttCalculateRouteURL(source, destination))
 	}
 
 	// Trim trailing comma
@@ -91,7 +114,6 @@ func getTomTomRoutes(sources []Location, destination Location) []Route {
 
 	// Decode the response JSON
 	var p fastjson.Parser
-	var routes []Route
 	v, err := p.Parse(string(resBody))
 	if err != nil {
 		fmt.Printf("Error parsing response JSON: %s", err)
@@ -99,7 +121,7 @@ func getTomTomRoutes(sources []Location, destination Location) []Route {
 	}
 
 	// Step 1. Loop through the data array
-	for _, route := range v.GetArray("batchItems") {
+	for i, route := range v.GetArray("batchItems") {
 		// Get the route summary
 		routeSummary := route.Get("response").GetArray("routes")[0].Get("summary")
 
@@ -110,12 +132,12 @@ func getTomTomRoutes(sources []Location, destination Location) []Route {
 			TrafficDelayInSeconds: routeSummary.GetInt("trafficDelayInSeconds"),
 			DepartureTime:         string(routeSummary.GetStringBytes("departureTime")),
 			ArrivalTime:           string(routeSummary.GetStringBytes("arrivalTime")),
-			Source:                sources[route.GetInt("originIndex")],
+			Source:                missedSrcs[i],
 			Destination:           destination,
 		}
 
-		// Append the new route to the routes slice
-		routes = append(routes, newRoute)
+		// Add to routes in proper index
+		routes[lookup[newRoute.Source]] = newRoute
 
 		// Store this route in memcache
 		cache.StoreRoute("tt", newRoute, int32(ttl))

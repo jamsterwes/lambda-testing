@@ -57,7 +57,7 @@ func (cache *PromCache) StoreRoute(prefix string, route Route, ttl int32) {
 // Helper function to get route from JSON
 func ParseRouteJSON(routeJSON string, source Location, destination Location) *Route {
 	// Decode JSON
-	var p *fastjson.Parser
+	var p fastjson.Parser
 	v, err := p.Parse(routeJSON)
 	if err != nil {
 		return nil

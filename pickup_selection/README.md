@@ -53,7 +53,7 @@ for example.
 ### Step 3. Tag the Docker container for upload on ECR
 
 ```bash
-docker tag price-prediction-go <ecr_url>/pickup-selection:latest
+docker tag pickup-selection <ecr_url>/pickup-selection:latest
 ```
 
 ### Step 4. Upload to ECR

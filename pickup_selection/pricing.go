@@ -58,42 +58,35 @@ func BuildRides(inbounds []RouteSummary, outbounds []RouteSummary) []Ride {
 	return rides
 }
 
+func BuildPricingJSON(pricingData []MLPricingData) string {
+	// Now simply exporting { data: [][8]float32 }
+	out := `{ "data": [`
+	for i, data := range pricingData {
+		out += fmt.Sprintf("[%f,%f,%f,%f,%f,%f,%f,%f]",
+			data.TimeInSeconds,
+			data.DistanceInMeters,
+			data.TimeToHistoricRatio,
+			data.TimeToNoTrafficRatio,
+			data.DayOfWeekSin,
+			data.DayOfWeekCos,
+			data.TimeOfDaySin,
+			data.TimeOfDayCos)
+		if i != len(pricingData)-1 {
+			out += ","
+		}
+	}
+	return out + "]}"
+}
+
 func PriceRides(rides []Ride, pricingData []MLPricingData) []Ride {
-	// Get miles
-	var miles []float64
-	for _, ride := range rides {
-		miles = append(miles, ride.DriveDistance)
-	}
+	// Build request body
+	requestBody := BuildPricingJSON(pricingData)
 
-	// Get minutes
-	var minutes []float64
-	for _, ride := range rides {
-		minutes = append(minutes, ride.DriveTime/60)
-	}
+	// Print request
+	print(requestBody)
 
-	// Build request object
-	requestBody := `{"miles": [`
-
-	// Add miles
-	for _, mile := range miles {
-		requestBody += fmt.Sprintf("%f,", mile)
-	}
-
-	// Remove trailing comma
-	requestBody = requestBody[:len(requestBody)-1]
-
-	// Add minutes
-	requestBody += `],"minutes": [`
-
-	for _, minute := range minutes {
-		requestBody += fmt.Sprintf("%f,", minute)
-	}
-
-	// Remove trailing comma
-	requestBody = requestBody[:len(requestBody)-1]
-
-	// Finish request body
-	requestBody += `]}`
+	// RETURN UNPRICED FOR DEBUG PURPOSES
+	return rides
 
 	// Make HTTP request to pricing service
 	url := os.Getenv("PRICING_API_URL")

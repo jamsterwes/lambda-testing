@@ -11,8 +11,7 @@ import (
 )
 
 type PricesRequest struct {
-	Miles   []float32 `json:"miles"`
-	Minutes []float32 `json:"minutes"`
+	Data [][]float32 `json:"data"`
 }
 
 type PricesResponse struct {
@@ -25,17 +24,11 @@ func HandleRequest(ctx context.Context, event *PricesRequest) (*PricesResponse, 
 	}
 
 	// Load model
-	model := tg.LoadModel("simple_model", []string{"serve"}, nil)
+	model := tg.LoadModel("tf_model", []string{"serve"}, nil)
 
 	// Make tensor from input
-	var mile_price_pairs [][2]float32
-	for i, _ := range event.Miles {
-		mile_price_pairs = append(mile_price_pairs, [2]float32{
-			event.Miles[i],
-			event.Minutes[i],
-		})
-	}
-	input, _ := tf.NewTensor(mile_price_pairs)
+	// TODO: dimension check
+	input, _ := tf.NewTensor(event.Data)
 
 	// Run model
 	results := model.Exec([]tf.Output{

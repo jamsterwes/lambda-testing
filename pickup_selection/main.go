@@ -101,12 +101,16 @@ func StreamBuildRides(source Location, destination Location, pickups []Location)
 	}(inboundSummariesChannel)
 
 	// Goroutine to retrieve outbound summaries
-	go func(c chan []RouteSummary) {
+	go func(c chan []RouteSummary, m chan []MLPricingData) {
 		// Go get inbound summaries
 		outboundRoutes := getTomTomRoutes(
 			pickups,
 			destination,
 		)
+
+		// Now summarize routes
+		outboundSummaries := SummarizeRoutes(outboundRoutes)
+		c <- outboundSummaries
 
 		// Get the day-of-week and time-of-day
 		// TODO: in future we would want the user's time zone...
@@ -132,12 +136,8 @@ func StreamBuildRides(source Location, destination Location, pickups []Location)
 
 			pricingData[i] = data
 		}
-		pricingDataChannel <- pricingData
-
-		// Now summarize routes
-		outboundSummaries := SummarizeRoutes(outboundRoutes)
-		c <- outboundSummaries
-	}(outboundSummariesChannel)
+		m <- pricingData
+	}(outboundSummariesChannel, pricingDataChannel)
 
 	// Now build rides
 	inboundSummaries := <-inboundSummariesChannel

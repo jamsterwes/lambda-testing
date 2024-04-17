@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 
 	"github.com/aws/aws-lambda-go/lambda"
 
@@ -24,7 +25,7 @@ func HandleRequest(ctx context.Context, event *PricesRequest) (*PricesResponse, 
 	}
 
 	// Load model
-	model := tg.LoadModel("tf_model", []string{"serve"}, nil)
+	model := tg.LoadModel("tf2_model", []string{"serve"}, nil)
 
 	// Make tensor from input
 	// TODO: dimension check
@@ -34,7 +35,7 @@ func HandleRequest(ctx context.Context, event *PricesRequest) (*PricesResponse, 
 	results := model.Exec([]tf.Output{
 		model.Op("StatefulPartitionedCall", 0),
 	}, map[tf.Output]*tf.Tensor{
-		model.Op("serving_default_normalization_4_input", 0): input,
+		model.Op("serving_default_inputs", 0): input,
 	})
 
 	// Get prices
@@ -44,7 +45,12 @@ func HandleRequest(ctx context.Context, event *PricesRequest) (*PricesResponse, 
 
 	var prices []float32
 	for _, result := range modelResultsTensor {
-		prices = append(prices, result...)
+		// is this correct @nick?
+		price := float64(result[0] + 5.75)
+		price = math.Round(price/0.9) * 0.9 // round to nearest 0.9 (?)
+		price = math.Max(8.87, price)
+
+		prices = append(prices, float32(price))
 	}
 
 	return &PricesResponse{

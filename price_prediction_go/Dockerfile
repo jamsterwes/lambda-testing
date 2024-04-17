@@ -22,7 +22,7 @@ FROM public.ecr.aws/lambda/provided:al2023
 COPY --from=build /helloworld/main ./main
 
 # Copy the simple_model folder to the container
-COPY tf_model/ ./tf_model
+COPY tf2_model/ ./tf2_model
 
 # Copy over tensorflow lib
 COPY --from=build /helloworld/tf/lib ./

@@ -81,15 +81,20 @@ Find the image without a **latest** tag and delete it.
 
 ## Calling from AWS Lambda
 
-This container expects (mile, minute) pairs in JSON form:
-
+This container expects an Nx8 array of data in JSON
+1. time in seconds
+2. distance in meters
+3. time to historic ratio (travelTime / historicTravelTime)
+4. time to no traffic ratio (travelTime / noTrafficTravelTime)
+5. day-of-week (scaled cosine)
+6. day-of-week (scaled sine)
+7. time-of-day (scaled cosine)
+8. time-of-day (scaled sine)
 ```json
 {
-    "miles": [
-        0.5, 1.0, 2.0, 2.5, 4.0
-    ],
-    "minutes": [
-        2.0, 4.0, 8.0, 23.5, 16.75
+    "data": [
+        [10, 9, 8, 7, 6, 5, 4, 3],
+        [3, 4, 5, 6, 7, 8, 9, 10],
     ]
 }
 ```
@@ -101,9 +106,61 @@ and returns data of the form:
     "prices": [
         9.482263565063477,
         10.340690612792969,
-        13.169022560119629,
-        21.532272338867188,
-        18.78050994873047
     ]
 }
+```
+
+## Debugging
+
+When using a saved ML model, the input operation may have been renamed from the typical ("serving_default_inputs", 0).  
+In order to see what the layer names are inside the saved ML model, use the `saved_model_cli`.  
+Follow this tutorial from TensorFlow: (https://www.tensorflow.org/guide/saved_model#details_of_the_savedmodel_command_line_interface).
+  
+Use this command to find the correct input op:
+```bash
+saved_model_cli show --dir tf_model/ --tag_set serve --signature_def serving_default
+```
+
+For example, the response may look like:
+```py
+The given SavedModel SignatureDef contains the following input(s):
+  inputs['inputs'] tensor_info:
+      dtype: DT_FLOAT
+      shape: (-1, 8)
+      name: serving_default_inputs:0
+The given SavedModel SignatureDef contains the following output(s):
+  outputs['output_0'] tensor_info:
+      dtype: DT_FLOAT
+      shape: (-1, 1)
+      name: StatefulPartitionedCall:0
+Method name is: tensorflow/serving/predict
+```
+
+In this case, the input being `serving_default_inputs:0` means that in `main.go`:
+```go
+// Run model
+results := model.Exec([]tf.Output{
+    model.Op("StatefulPartitionedCall", 0),
+}, map[tf.Output]*tf.Tensor{
+    model.Op("serving_default_inputs", 0): input,
+})
+```
+the input should be `model.Op("serving_default_inputs", 0)` where 0 is the number after the `:` in `serving_default_inputs:0`
+
+## Upgrading TensorFlow
+
+In the event you need to upgrade TensorFlow, update the dockerfile and replace all references to the libtensorflow, such as:
+```docker
+RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz
+# ...
+RUN tar -C ./tf -xzf libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz
+RUN tar -C /usr/local -xzf libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz
+```
+
+with the version of your choosing:
+```docker
+RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-<version>.tar.gz
+# ...
+RUN tar -C ./tf -xzf libtensorflow-cpu-linux-x86_64-<version>.tar.gz
+RUN tar -C /usr/local -xzf libtensorflow-cpu-linux-x86_64-<version>.tar.gz
 ```

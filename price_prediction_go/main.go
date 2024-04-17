@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 
 	"github.com/aws/aws-lambda-go/lambda"
 
@@ -11,8 +12,7 @@ import (
 )
 
 type PricesRequest struct {
-	Miles   []float32 `json:"miles"`
-	Minutes []float32 `json:"minutes"`
+	Data [][]float32 `json:"data"`
 }
 
 type PricesResponse struct {
@@ -25,23 +25,17 @@ func HandleRequest(ctx context.Context, event *PricesRequest) (*PricesResponse, 
 	}
 
 	// Load model
-	model := tg.LoadModel("simple_model", []string{"serve"}, nil)
+	model := tg.LoadModel("tf2_model", []string{"serve"}, nil)
 
 	// Make tensor from input
-	var mile_price_pairs [][2]float32
-	for i, _ := range event.Miles {
-		mile_price_pairs = append(mile_price_pairs, [2]float32{
-			event.Miles[i],
-			event.Minutes[i],
-		})
-	}
-	input, _ := tf.NewTensor(mile_price_pairs)
+	// TODO: dimension check
+	input, _ := tf.NewTensor(event.Data)
 
 	// Run model
 	results := model.Exec([]tf.Output{
 		model.Op("StatefulPartitionedCall", 0),
 	}, map[tf.Output]*tf.Tensor{
-		model.Op("serving_default_normalization_4_input", 0): input,
+		model.Op("serving_default_inputs", 0): input,
 	})
 
 	// Get prices
@@ -51,7 +45,12 @@ func HandleRequest(ctx context.Context, event *PricesRequest) (*PricesResponse, 
 
 	var prices []float32
 	for _, result := range modelResultsTensor {
-		prices = append(prices, result...)
+		// is this correct @nick?
+		price := float64(result[0] + 6.5)
+		price = math.Max(7.87, price)
+		price = math.Round(price) - 0.1
+
+		prices = append(prices, float32(price))
 	}
 
 	return &PricesResponse{

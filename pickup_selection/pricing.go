@@ -23,6 +23,18 @@ type Ride struct {
 	Price         float64  `json:"price"`
 }
 
+// This stores all the data needed to price a ride
+type MLPricingData struct {
+	TimeInSeconds        float64
+	DistanceInMeters     float64
+	TimeToHistoricRatio  float64
+	TimeToNoTrafficRatio float64
+	DayOfWeekSin         float64
+	DayOfWeekCos         float64
+	TimeOfDaySin         float64
+	TimeOfDayCos         float64
+}
+
 func BuildRide(inbound RouteSummary, outbound RouteSummary) Ride {
 	return Ride{
 		Source:        inbound.Source,
@@ -46,42 +58,32 @@ func BuildRides(inbounds []RouteSummary, outbounds []RouteSummary) []Ride {
 	return rides
 }
 
-func PriceRides(rides []Ride) []Ride {
-	// Get miles
-	var miles []float64
-	for _, ride := range rides {
-		miles = append(miles, ride.DriveDistance)
+func BuildPricingJSON(pricingData []MLPricingData) string {
+	// Now simply exporting { data: [][8]float32 }
+	out := `{ "data": [`
+	for i, data := range pricingData {
+		out += fmt.Sprintf("[%f,%f,%f,%f,%f,%f,%f,%f]",
+			data.TimeInSeconds,
+			data.DistanceInMeters,
+			data.TimeToHistoricRatio,
+			data.TimeToNoTrafficRatio,
+			data.DayOfWeekSin,
+			data.DayOfWeekCos,
+			data.TimeOfDaySin,
+			data.TimeOfDayCos)
+		if i != len(pricingData)-1 {
+			out += ","
+		}
 	}
+	return out + "]}"
+}
 
-	// Get minutes
-	var minutes []float64
-	for _, ride := range rides {
-		minutes = append(minutes, ride.DriveTime/60)
-	}
+func PriceRides(rides []Ride, pricingData []MLPricingData) []Ride {
+	// Build request body
+	requestBody := BuildPricingJSON(pricingData)
 
-	// Build request object
-	requestBody := `{"miles": [`
-
-	// Add miles
-	for _, mile := range miles {
-		requestBody += fmt.Sprintf("%f,", mile)
-	}
-
-	// Remove trailing comma
-	requestBody = requestBody[:len(requestBody)-1]
-
-	// Add minutes
-	requestBody += `],"minutes": [`
-
-	for _, minute := range minutes {
-		requestBody += fmt.Sprintf("%f,", minute)
-	}
-
-	// Remove trailing comma
-	requestBody = requestBody[:len(requestBody)-1]
-
-	// Finish request body
-	requestBody += `]}`
+	// Print request
+	print(requestBody)
 
 	// Make HTTP request to pricing service
 	url := os.Getenv("PRICING_API_URL")

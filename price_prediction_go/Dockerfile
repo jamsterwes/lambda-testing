@@ -5,12 +5,12 @@ WORKDIR /helloworld
 COPY go.mod go.sum ./
 
 # Download tensorflow libs
-RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.9.1.tar.gz
+RUN wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz
 
 # Copy over tensorflow lib
 RUN mkdir ./tf
-RUN tar -C ./tf -xzf libtensorflow-cpu-linux-x86_64-2.9.1.tar.gz
-RUN tar -C /usr/local -xzf libtensorflow-cpu-linux-x86_64-2.9.1.tar.gz
+RUN tar -C ./tf -xzf libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz
+RUN tar -C /usr/local -xzf libtensorflow-cpu-linux-x86_64-2.15.0.tar.gz
 RUN ldconfig
 
 # Build with optional lambda.norpc tag

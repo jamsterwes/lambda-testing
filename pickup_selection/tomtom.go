@@ -21,10 +21,6 @@ type Route struct {
 	Destination           Location `json:"destination"`
 }
 
-func locationToJSON(location Location) string {
-	return fmt.Sprintf(`{"latitude": %f, "longitude": %f}`, location.Latitude, location.Longitude)
-}
-
 func ttCalculateRouteURL(src Location, dst Location) string {
 	return fmt.Sprintf(`/calculateRoute/%.6f,%.6f:%.6f,%.6f/json?travelMode=car&routeType=fastest&traffic=true&departAt=now&maxAlternatives=0&routeRepresentation=summaryOnly`,
 		src.Latitude,

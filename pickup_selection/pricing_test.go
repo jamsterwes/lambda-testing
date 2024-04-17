@@ -63,7 +63,7 @@ func TestPriceRides(t *testing.T) {
 		{Source: Location{Latitude: 30.5324314241, Longitude: 92.3523423345}, PickupPoint: Location{Latitude: 30.6324314241, Longitude: 92.2523423345}, Destination: Location{Latitude: 30.3324314241, Longitude: 92.5523423345}, WalkTime: 21.41, WalkDistance: 6.23, DriveTime: 15.43, DriveDistance: 6.43, TotalTime: 32.32, TotalDistance: 5.325, Price: 0.0},
 	}
 
-	ride := PriceRides(test_rides)
+	ride := PriceRides(test_rides, []MLPricingData{})
 	if ride[0].Price == 0 {
 		t.Errorf("Fail: Price model did not return a value")
 	}

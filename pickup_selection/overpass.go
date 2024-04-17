@@ -53,17 +53,21 @@ func getStreetGeometry(radius float64, center Location, test_APIURL string) [][]
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 
 	if err != nil {
-		fmt.Printf("Error creating http request: %s", err)
+		fmt.Printf("Error creating http request: %s\n", err)
 		os.Exit(1)
 	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Printf("Error making http request: %s", err)
+		fmt.Printf("Error making http request: %s\n", err)
 		os.Exit(1)
 	}
 
 	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading in Overpass Response: %s\n", err)
+		os.Exit(1)
+	}
 
 	// Decode response JSON (elements only)
 	var geometries [][]Location

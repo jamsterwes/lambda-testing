@@ -85,9 +85,6 @@ func PriceRides(rides []Ride, pricingData []MLPricingData) []Ride {
 	// Print request
 	print(requestBody)
 
-	// RETURN UNPRICED FOR DEBUG PURPOSES
-	return rides
-
 	// Make HTTP request to pricing service
 	url := os.Getenv("PRICING_API_URL")
 

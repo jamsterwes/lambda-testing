@@ -46,9 +46,9 @@ func HandleRequest(ctx context.Context, event *PricesRequest) (*PricesResponse, 
 	var prices []float32
 	for _, result := range modelResultsTensor {
 		// is this correct @nick?
-		price := float64(result[0] + 5.75)
-		price = math.Round(price+0.1) + 0.1 // round to nearest 0.9 (?)
-		price = math.Max(8.87, price)
+		price := float64(result[0] + 6.5)
+		price = math.Max(7.87, price)
+		price = math.Round(price) - 0.1
 
 		prices = append(prices, float32(price))
 	}

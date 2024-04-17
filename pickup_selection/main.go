@@ -126,7 +126,7 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	rides := StreamBuildRides(event.Source, event.Destination, culledPoints)
 
 	// Price rides
-	rides = PriceRides(rides)
+	rides = PriceRides(rides, []MLPricingData{})
 
 	// TODO: do something with ride prices, etc
 	// sort rides by price

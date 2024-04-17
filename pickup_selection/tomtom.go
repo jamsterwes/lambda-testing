@@ -101,6 +101,8 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 		// Get the route summary
 		routeSummary := route.Get("routeSummary")
 
+		fmt.Printf("RouteSummary: %+v\n", routeSummary.MarshalTo(nil))
+
 		// Create a new route
 		newRoute := Route{
 			LengthInMeters:        routeSummary.GetInt("lengthInMeters"),

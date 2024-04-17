@@ -23,6 +23,18 @@ type Ride struct {
 	Price         float64  `json:"price"`
 }
 
+// This stores all the data needed to price a ride
+type MLPricingData struct {
+	TimeInSeconds        float64
+	DistanceInMeters     float64
+	TimeToHistoricRatio  float64
+	TimeToNoTrafficRatio float64
+	DayOfWeekSin         float64
+	DayOfWeekCos         float64
+	TimeOfDaySin         float64
+	TimeOfDayCos         float64
+}
+
 func BuildRide(inbound RouteSummary, outbound RouteSummary) Ride {
 	return Ride{
 		Source:        inbound.Source,
@@ -46,7 +58,7 @@ func BuildRides(inbounds []RouteSummary, outbounds []RouteSummary) []Ride {
 	return rides
 }
 
-func PriceRides(rides []Ride) []Ride {
+func PriceRides(rides []Ride, pricingData []MLPricingData) []Ride {
 	// Get miles
 	var miles []float64
 	for _, ride := range rides {

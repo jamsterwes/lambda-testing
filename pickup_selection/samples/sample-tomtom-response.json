@@ -1,0 +1,625 @@
+{
+    "formatVersion": "0.0.1",
+    "batchItems": [
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 2181,
+                            "travelTimeInSeconds": 296,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:31-05:00",
+                            "arrivalTime": "2024-04-17T11:21:27-05:00",
+                            "noTrafficTravelTimeInSeconds": 291,
+                            "historicTrafficTravelTimeInSeconds": 294,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 296
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 2181,
+                                    "travelTimeInSeconds": 296,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:31-05:00",
+                                    "arrivalTime": "2024-04-17T11:21:27-05:00",
+                                    "noTrafficTravelTimeInSeconds": 291,
+                                    "historicTrafficTravelTimeInSeconds": 294,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 296
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 59,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 1664,
+                            "travelTimeInSeconds": 243,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:30-05:00",
+                            "arrivalTime": "2024-04-17T11:20:33-05:00",
+                            "noTrafficTravelTimeInSeconds": 239,
+                            "historicTrafficTravelTimeInSeconds": 241,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 243
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 1664,
+                                    "travelTimeInSeconds": 243,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:30-05:00",
+                                    "arrivalTime": "2024-04-17T11:20:33-05:00",
+                                    "noTrafficTravelTimeInSeconds": 239,
+                                    "historicTrafficTravelTimeInSeconds": 241,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 243
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 54,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 2285,
+                            "travelTimeInSeconds": 327,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:31-05:00",
+                            "arrivalTime": "2024-04-17T11:21:58-05:00",
+                            "noTrafficTravelTimeInSeconds": 281,
+                            "historicTrafficTravelTimeInSeconds": 326,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 327
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 2285,
+                                    "travelTimeInSeconds": 327,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:31-05:00",
+                                    "arrivalTime": "2024-04-17T11:21:58-05:00",
+                                    "noTrafficTravelTimeInSeconds": 281,
+                                    "historicTrafficTravelTimeInSeconds": 326,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 327
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 65,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 3498,
+                            "travelTimeInSeconds": 511,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:31-05:00",
+                            "arrivalTime": "2024-04-17T11:25:02-05:00",
+                            "noTrafficTravelTimeInSeconds": 469,
+                            "historicTrafficTravelTimeInSeconds": 508,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 511
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 3498,
+                                    "travelTimeInSeconds": 511,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:31-05:00",
+                                    "arrivalTime": "2024-04-17T11:25:02-05:00",
+                                    "noTrafficTravelTimeInSeconds": 469,
+                                    "historicTrafficTravelTimeInSeconds": 508,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 511
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 127,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 2921,
+                            "travelTimeInSeconds": 380,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:30-05:00",
+                            "arrivalTime": "2024-04-17T11:22:49-05:00",
+                            "noTrafficTravelTimeInSeconds": 348,
+                            "historicTrafficTravelTimeInSeconds": 377,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 380
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 2921,
+                                    "travelTimeInSeconds": 380,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:30-05:00",
+                                    "arrivalTime": "2024-04-17T11:22:49-05:00",
+                                    "noTrafficTravelTimeInSeconds": 348,
+                                    "historicTrafficTravelTimeInSeconds": 377,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 380
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 104,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 3250,
+                            "travelTimeInSeconds": 489,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:31-05:00",
+                            "arrivalTime": "2024-04-17T11:24:40-05:00",
+                            "noTrafficTravelTimeInSeconds": 446,
+                            "historicTrafficTravelTimeInSeconds": 486,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 489
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 3250,
+                                    "travelTimeInSeconds": 489,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:31-05:00",
+                                    "arrivalTime": "2024-04-17T11:24:40-05:00",
+                                    "noTrafficTravelTimeInSeconds": 446,
+                                    "historicTrafficTravelTimeInSeconds": 486,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 489
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 115,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 3078,
+                            "travelTimeInSeconds": 408,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:30-05:00",
+                            "arrivalTime": "2024-04-17T11:23:18-05:00",
+                            "noTrafficTravelTimeInSeconds": 361,
+                            "historicTrafficTravelTimeInSeconds": 405,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 408
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 3078,
+                                    "travelTimeInSeconds": 408,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:30-05:00",
+                                    "arrivalTime": "2024-04-17T11:23:18-05:00",
+                                    "noTrafficTravelTimeInSeconds": 361,
+                                    "historicTrafficTravelTimeInSeconds": 405,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 408
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 106,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 3020,
+                            "travelTimeInSeconds": 374,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:31-05:00",
+                            "arrivalTime": "2024-04-17T11:22:44-05:00",
+                            "noTrafficTravelTimeInSeconds": 331,
+                            "historicTrafficTravelTimeInSeconds": 371,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 374
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 3020,
+                                    "travelTimeInSeconds": 374,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:31-05:00",
+                                    "arrivalTime": "2024-04-17T11:22:44-05:00",
+                                    "noTrafficTravelTimeInSeconds": 331,
+                                    "historicTrafficTravelTimeInSeconds": 371,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 374
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 99,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 2792,
+                            "travelTimeInSeconds": 395,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:32-05:00",
+                            "arrivalTime": "2024-04-17T11:23:06-05:00",
+                            "noTrafficTravelTimeInSeconds": 368,
+                            "historicTrafficTravelTimeInSeconds": 392,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 395
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 2792,
+                                    "travelTimeInSeconds": 395,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:32-05:00",
+                                    "arrivalTime": "2024-04-17T11:23:06-05:00",
+                                    "noTrafficTravelTimeInSeconds": 368,
+                                    "historicTrafficTravelTimeInSeconds": 392,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 395
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 101,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 2784,
+                            "travelTimeInSeconds": 410,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:30-05:00",
+                            "arrivalTime": "2024-04-17T11:23:20-05:00",
+                            "noTrafficTravelTimeInSeconds": 364,
+                            "historicTrafficTravelTimeInSeconds": 407,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 410
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 2784,
+                                    "travelTimeInSeconds": 410,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:30-05:00",
+                                    "arrivalTime": "2024-04-17T11:23:20-05:00",
+                                    "noTrafficTravelTimeInSeconds": 364,
+                                    "historicTrafficTravelTimeInSeconds": 407,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 410
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 102,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 2967,
+                            "travelTimeInSeconds": 431,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:32-05:00",
+                            "arrivalTime": "2024-04-17T11:23:42-05:00",
+                            "noTrafficTravelTimeInSeconds": 382,
+                            "historicTrafficTravelTimeInSeconds": 428,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 431
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 2967,
+                                    "travelTimeInSeconds": 431,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:32-05:00",
+                                    "arrivalTime": "2024-04-17T11:23:42-05:00",
+                                    "noTrafficTravelTimeInSeconds": 382,
+                                    "historicTrafficTravelTimeInSeconds": 428,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 431
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 101,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 3257,
+                            "travelTimeInSeconds": 403,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:30-05:00",
+                            "arrivalTime": "2024-04-17T11:23:13-05:00",
+                            "noTrafficTravelTimeInSeconds": 375,
+                            "historicTrafficTravelTimeInSeconds": 400,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 403
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 3257,
+                                    "travelTimeInSeconds": 403,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:30-05:00",
+                                    "arrivalTime": "2024-04-17T11:23:13-05:00",
+                                    "noTrafficTravelTimeInSeconds": 375,
+                                    "historicTrafficTravelTimeInSeconds": 400,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 403
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 105,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 1790,
+                            "travelTimeInSeconds": 243,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:30-05:00",
+                            "arrivalTime": "2024-04-17T11:20:32-05:00",
+                            "noTrafficTravelTimeInSeconds": 220,
+                            "historicTrafficTravelTimeInSeconds": 241,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 243
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 1790,
+                                    "travelTimeInSeconds": 243,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:30-05:00",
+                                    "arrivalTime": "2024-04-17T11:20:32-05:00",
+                                    "noTrafficTravelTimeInSeconds": 220,
+                                    "historicTrafficTravelTimeInSeconds": 241,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 243
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 70,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "statusCode": 200,
+            "response": {
+                "formatVersion": "0.0.12",
+                "routes": [
+                    {
+                        "summary": {
+                            "lengthInMeters": 2520,
+                            "travelTimeInSeconds": 353,
+                            "trafficDelayInSeconds": 0,
+                            "trafficLengthInMeters": 0,
+                            "departureTime": "2024-04-17T11:16:32-05:00",
+                            "arrivalTime": "2024-04-17T11:22:24-05:00",
+                            "noTrafficTravelTimeInSeconds": 303,
+                            "historicTrafficTravelTimeInSeconds": 350,
+                            "liveTrafficIncidentsTravelTimeInSeconds": 353
+                        },
+                        "legs": [
+                            {
+                                "summary": {
+                                    "lengthInMeters": 2520,
+                                    "travelTimeInSeconds": 353,
+                                    "trafficDelayInSeconds": 0,
+                                    "trafficLengthInMeters": 0,
+                                    "departureTime": "2024-04-17T11:16:32-05:00",
+                                    "arrivalTime": "2024-04-17T11:22:24-05:00",
+                                    "noTrafficTravelTimeInSeconds": 303,
+                                    "historicTrafficTravelTimeInSeconds": 350,
+                                    "liveTrafficIncidentsTravelTimeInSeconds": 353
+                                }
+                            }
+                        ],
+                        "sections": [
+                            {
+                                "startPointIndex": 0,
+                                "endPointIndex": 74,
+                                "sectionType": "TRAVEL_MODE",
+                                "travelMode": "car"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ],
+    "summary": {
+        "successfulRequests": 14,
+        "totalRequests": 14
+    }
+}

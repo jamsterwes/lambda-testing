@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 	"sort"
+	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -79,12 +81,15 @@ func StreamPickupPoints(center Location, streetGeometries [][]Location) []Locati
 	return culledPoints
 }
 
-func StreamBuildRides(source Location, destination Location, pickups []Location) []Ride {
+func StreamBuildRides(source Location, destination Location, pickups []Location) ([]Ride, []MLPricingData) {
 	// Make a channel to receive inboundSummaries
 	inboundSummariesChannel := make(chan []RouteSummary)
 
 	// Make a channel to receive outboundSummaries
 	outboundSummariesChannel := make(chan []RouteSummary)
+
+	// Make a channel to receive pricingData
+	pricingDataChannel := make(chan []MLPricingData)
 
 	// Goroutine to retrieve inbound summaries
 	go func(c chan []RouteSummary) {
@@ -102,6 +107,34 @@ func StreamBuildRides(source Location, destination Location, pickups []Location)
 			pickups,
 			destination,
 		)
+
+		// Get the day-of-week and time-of-day
+		// TODO: in future we would want the user's time zone...
+		// assume CDT for now
+		loc := time.FixedZone("CDT", -5*60*60)
+		now := time.Now().In(loc)
+		day_of_week := float64(now.Weekday()) / 7
+		time_of_day := (float64(now.Hour()) + (float64(now.Minute()) / 60)) / 24
+
+		// Now build pricing data
+		pricingData := make([]MLPricingData, len(outboundRoutes))
+		for i, route := range outboundRoutes {
+			data := MLPricingData{
+				TimeInSeconds:        float64(route.TravelTimeInSeconds),
+				DistanceInMeters:     float64(route.LengthInMeters),
+				TimeToHistoricRatio:  float64(route.TravelTimeInSeconds) / float64(route.HistoricalTrafficTravelTimeInSeconds),
+				TimeToNoTrafficRatio: float64(route.TravelTimeInSeconds) / float64(route.NoTrafficTravelTimeInSeconds),
+				DayOfWeekSin:         math.Sin(2 * math.Pi * day_of_week),
+				DayOfWeekCos:         math.Cos(2 * math.Pi * day_of_week),
+				TimeOfDaySin:         math.Sin(2 * math.Pi * time_of_day),
+				TimeOfDayCos:         math.Cos(2 * math.Pi * time_of_day),
+			}
+
+			pricingData[i] = data
+		}
+		pricingDataChannel <- pricingData
+
+		// Now summarize routes
 		outboundSummaries := SummarizeRoutes(outboundRoutes)
 		c <- outboundSummaries
 	}(outboundSummariesChannel)
@@ -109,7 +142,7 @@ func StreamBuildRides(source Location, destination Location, pickups []Location)
 	// Now build rides
 	inboundSummaries := <-inboundSummariesChannel
 	outboundSummaries := <-outboundSummariesChannel
-	return BuildRides(inboundSummaries, outboundSummaries)
+	return BuildRides(inboundSummaries, outboundSummaries), <-pricingDataChannel
 }
 
 func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupSelectionResponse, error) {
@@ -122,10 +155,10 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	culledPoints := StreamPickupPoints(event.Source, streetGeometries)
 
 	// Build rides in parallel
-	rides := StreamBuildRides(event.Source, event.Destination, culledPoints)
+	rides, pricingData := StreamBuildRides(event.Source, event.Destination, culledPoints)
 
 	// Price rides
-	rides = PriceRides(rides, []MLPricingData{})
+	rides = PriceRides(rides, pricingData)
 
 	// TODO: do something with ride prices, etc
 	// sort rides by price

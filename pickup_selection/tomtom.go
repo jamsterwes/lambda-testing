@@ -12,17 +12,19 @@ import (
 )
 
 type Route struct {
-	LengthInMeters        int      `json:"lengthInMeters"`
-	TravelTimeInSeconds   int      `json:"travelTimeInSeconds"`
-	TrafficDelayInSeconds int      `json:"trafficDelayInSeconds"`
-	DepartureTime         string   `json:"departureTime"`
-	ArrivalTime           string   `json:"arrivalTime"`
-	Source                Location `json:"source"`
-	Destination           Location `json:"destination"`
+	LengthInMeters                       int      `json:"lengthInMeters"`
+	TravelTimeInSeconds                  int      `json:"travelTimeInSeconds"`
+	HistoricalTrafficTravelTimeInSeconds int      `json:"historicTrafficTravelTimeInSeconds"`
+	NoTrafficTravelTimeInSeconds         int      `json:"noTrafficTravelTimeInSeconds"`
+	TrafficDelayInSeconds                int      `json:"trafficDelayInSeconds"`
+	DepartureTime                        string   `json:"departureTime"`
+	ArrivalTime                          string   `json:"arrivalTime"`
+	Source                               Location `json:"source"`
+	Destination                          Location `json:"destination"`
 }
 
 func ttCalculateRouteURL(src Location, dst Location) string {
-	return fmt.Sprintf(`/calculateRoute/%.6f,%.6f:%.6f,%.6f/json?travelMode=car&routeType=fastest&traffic=true&departAt=now&maxAlternatives=0&routeRepresentation=summaryOnly`,
+	return fmt.Sprintf(`/calculateRoute/%.6f,%.6f:%.6f,%.6f/json?travelMode=car&routeType=fastest&traffic=true&departAt=now&maxAlternatives=0&computeTravelTimeFor=all&routeRepresentation=summaryOnly`,
 		src.Latitude,
 		src.Longitude,
 		dst.Latitude,
@@ -121,17 +123,17 @@ func getTomTomRoutes(sources []Location, destination Location) []Route {
 		// Get the route summary
 		routeSummary := route.Get("response").GetArray("routes")[0].Get("summary")
 
-		fmt.Printf("RouteSummary: %+v\n", routeSummary.MarshalTo(nil))
-
 		// Create a new route
 		newRoute := Route{
-			LengthInMeters:        routeSummary.GetInt("lengthInMeters"),
-			TravelTimeInSeconds:   routeSummary.GetInt("travelTimeInSeconds"),
-			TrafficDelayInSeconds: routeSummary.GetInt("trafficDelayInSeconds"),
-			DepartureTime:         string(routeSummary.GetStringBytes("departureTime")),
-			ArrivalTime:           string(routeSummary.GetStringBytes("arrivalTime")),
-			Source:                missedSrcs[i],
-			Destination:           destination,
+			LengthInMeters:                       routeSummary.GetInt("lengthInMeters"),
+			TravelTimeInSeconds:                  routeSummary.GetInt("travelTimeInSeconds"),
+			HistoricalTrafficTravelTimeInSeconds: routeSummary.GetInt("historicTrafficTravelTimeInSeconds"),
+			NoTrafficTravelTimeInSeconds:         routeSummary.GetInt("noTrafficTravelTimeInSeconds"),
+			TrafficDelayInSeconds:                routeSummary.GetInt("trafficDelayInSeconds"),
+			DepartureTime:                        string(routeSummary.GetStringBytes("departureTime")),
+			ArrivalTime:                          string(routeSummary.GetStringBytes("arrivalTime")),
+			Source:                               missedSrcs[i],
+			Destination:                          destination,
 		}
 
 		// Add to routes in proper index

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/valyala/fastjson"
@@ -24,51 +25,72 @@ func locationToJSON(location Location) string {
 	return fmt.Sprintf(`{"latitude": %f, "longitude": %f}`, location.Latitude, location.Longitude)
 }
 
-// Multiple Source Multiple Destination
-func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, travelMode string) []Route {
+func ttCalculateRouteURL(src Location, dst Location) string {
+	return fmt.Sprintf(`/calculateRoute/%.6f,%.6f:%.6f,%.6f/json?travelMode=car&routeType=fastest&traffic=true&departAt=now&maxAlternatives=0&routeRepresentation=summaryOnly`,
+		src.Latitude,
+		src.Longitude,
+		dst.Latitude,
+		dst.Longitude)
+}
+
+// Get a list of routes from TomTom
+func getTomTomRoutes(sources []Location, destination Location) []Route {
 	// If source empty, return empty
 	if len(sources) == 0 {
 		return []Route{}
 	}
 
-	// If destination empty, return empty
-	if len(destinations) == 0 {
-		return []Route{}
+	// Make response array
+	routes := make([]Route, len(sources))
+
+	// Build src lookup, destinations
+	lookup := make(map[Location]int)
+	destinations := make([]Location, len(sources))
+	for i, src := range sources {
+		lookup[src] = i
+		destinations[i] = destination
 	}
 
-	// Create the request body
-	var requestBody string = `{`
+	// Get PromCache
+	cache := NewPromCache()
 
-	// Add the origins to the body
-	requestBody += `"origins": [`
-	for i, source := range sources {
-		requestBody += `{
-			"point": ` + locationToJSON(source) + `
-		}`
-		if i < len(sources)-1 {
-			requestBody += `,`
-		}
+	// Get ttl setting
+	ttl, err := strconv.Atoi(os.Getenv("TT_TTL"))
+	if err != nil {
+		// Default to 5min ttl
+		ttl = 60 * 5
 	}
-	requestBody += `],`
 
-	// Add the destinations to the body
-	requestBody += `"destinations": [`
-	for i, destination := range destinations {
-		requestBody += `{
-			"point": ` + locationToJSON(destination) + `
-		}`
-		if i < len(destinations)-1 {
-			requestBody += `,`
-		}
+	// Pull from cache
+	cachedRoutes, missedSrcs, _ := cache.GetRoutes("tt", sources, destinations)
+	for _, route := range cachedRoutes {
+		// Insert into proper index
+		i := lookup[route.Source]
+		routes[i] = route
 	}
-	requestBody += `],`
 
-	// Add the rest of the body
-	requestBody += `"options": {
-		"traffic": "live",
-		"departAt": "now",
-		"travelMode": "` + travelMode + `"
-	}}`
+	// If there were no missed sources, simply return routes
+	if len(missedSrcs) == 0 {
+		return routes
+	}
+
+	// Start request body
+	requestBody := `{"batchItems":[`
+
+	// Add (src,dst) pairs
+	for _, source := range missedSrcs {
+		fmt.Printf("Cache hit @ (%.6f, %.6f)->(%.6f, %.6f)\n", source.Latitude, source.Longitude, destination.Latitude, destination.Longitude)
+		requestBody += fmt.Sprintf(`{"query": "%s"},`, ttCalculateRouteURL(source, destination))
+	}
+
+	// Trim trailing comma
+	requestBody = requestBody[:len(requestBody)-1]
+
+	// Finish request body
+	requestBody += `]}`
+
+	// PRINT REQUEST BODY
+	fmt.Println(string(requestBody))
 
 	// Now get the URL
 	url := os.Getenv("TOMTOM_API_URL") + os.Getenv("TOMTOM_API_KEY")
@@ -87,9 +109,11 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 		os.Exit(1)
 	}
 
+	// PRINT RESPONSE BODY
+	fmt.Println(string(resBody))
+
 	// Decode the response JSON
 	var p fastjson.Parser
-	var routes []Route
 	v, err := p.Parse(string(resBody))
 	if err != nil {
 		fmt.Printf("Error parsing response JSON: %s", err)
@@ -97,9 +121,9 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 	}
 
 	// Step 1. Loop through the data array
-	for _, route := range v.GetArray("data") {
+	for i, route := range v.GetArray("batchItems") {
 		// Get the route summary
-		routeSummary := route.Get("routeSummary")
+		routeSummary := route.Get("response").GetArray("routes")[0].Get("summary")
 
 		// Create a new route
 		newRoute := Route{
@@ -108,12 +132,15 @@ func makeBatchSSMDRoutingRequest(sources []Location, destinations []Location, tr
 			TrafficDelayInSeconds: routeSummary.GetInt("trafficDelayInSeconds"),
 			DepartureTime:         string(routeSummary.GetStringBytes("departureTime")),
 			ArrivalTime:           string(routeSummary.GetStringBytes("arrivalTime")),
-			Source:                sources[route.GetInt("originIndex")],
-			Destination:           destinations[route.GetInt("destinationIndex")],
+			Source:                missedSrcs[i],
+			Destination:           destination,
 		}
 
-		// Append the new route to the routes slice
-		routes = append(routes, newRoute)
+		// Add to routes in proper index
+		routes[lookup[newRoute.Source]] = newRoute
+
+		// Store this route in memcache
+		cache.StoreRoute("tt", newRoute, int32(ttl))
 	}
 
 	return routes

@@ -98,10 +98,9 @@ func StreamBuildRides(source Location, destination Location, pickups []Location)
 	// Goroutine to retrieve outbound summaries
 	go func(c chan []RouteSummary) {
 		// Go get inbound summaries
-		outboundRoutes := makeBatchSSMDRoutingRequest(
+		outboundRoutes := getTomTomRoutes(
 			pickups,
-			[]Location{destination},
-			"car",
+			destination,
 		)
 		outboundSummaries := SummarizeRoutes(outboundRoutes)
 		c <- outboundSummaries

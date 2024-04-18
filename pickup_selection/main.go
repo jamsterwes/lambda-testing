@@ -153,31 +153,18 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	streetGeometries := getStreetGeometry(1, event.Source, "nil")
 	culledPoints := StreamPickupPoints(event.Source, streetGeometries)
 
+	// Add the source to the end of culled points for savings calculations
+	// This gets us the pricing data of the no-walking ride for free
+	culledPoints = append(culledPoints, event.Source)
+
 	// Build rides in parallel
 	rides, pricingData := StreamBuildRides(event.Source, event.Destination, culledPoints)
 
-	//Price no-walking ride
-	noWalkRoute := makeRouteRequest(event.Source, event.Destination)
-	noWalkInbound := RouteSummary{
-		Source:      event.Source,
-		Destination: event.Source,
-		Time:        0.0,
-		Distance:    0.0,
-	}
-	noWalkOutbound := RouteSummary{
-		Source:      noWalkRoute.Source,
-		Destination: noWalkRoute.Destination,
-		Time:        float64(noWalkRoute.TravelTimeInSeconds),
-		Distance:    float64(noWalkRoute.LengthInMeters),
-	}
-
-	noWalkRide := BuildRide(noWalkInbound, noWalkOutbound)
-
-	// Add noWalkRide to end of rides slice for savings calculations
-	rides = append(rides, noWalkRide)
-
 	// Price rides
 	rides = PriceRides(rides, pricingData)
+
+	// Remember to take the no-walking ride out of the slice
+	rides = rides[:len(rides)-1]
 
 	// TODO: do something with ride prices, etc
 	// sort rides by price lowest -> highest

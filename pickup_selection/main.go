@@ -176,26 +176,6 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	// Add noWalkRide to end of rides slice for savings calculations
 	rides = append(rides, noWalkRide)
 
-	//Price no-walking ride
-	noWalkRoute := makeRouteRequest(event.Source, event.Destination)
-	noWalkInbound := RouteSummary{
-		Source:      event.Source,
-		Destination: event.Source,
-		Time:        0.0,
-		Distance:    0.0,
-	}
-	noWalkOutbound := RouteSummary{
-		Source:      noWalkRoute.Source,
-		Destination: noWalkRoute.Destination,
-		Time:        float64(noWalkRoute.TravelTimeInSeconds),
-		Distance:    float64(noWalkRoute.LengthInMeters),
-	}
-
-	noWalkRide := BuildRide(noWalkInbound, noWalkOutbound)
-
-	// Add noWalkRide to end of rides slice for savings calculations
-	rides = append(rides, noWalkRide)
-
 	// Price rides
 	rides = PriceRides(rides, pricingData)
 

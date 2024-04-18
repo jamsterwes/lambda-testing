@@ -150,9 +150,8 @@ func getTomTomRoutes(sources []Location, destination Location) []Route {
 func makeRouteRequest(source Location, destination Location) Route {
 
 	// Now get the URL
-	locationsStrings := fmt.Sprintf("%f%%2C%f%%3A%f%%2C%f/json?travelMode=carkey=&", source.Latitude, source.Longitude, destination.Latitude, destination.Longitude)
+	locationsStrings := fmt.Sprintf("%f%%2C%f/json?travelMode=carkey=&", source.Latitude, source.Longitude)
 	url := os.Getenv("TOMTOM_API_ROUTE_URL") + locationsStrings + os.Getenv("TOMTOM_API_KEY")
-
 	// Make the request
 	res, err := http.Get(url)
 	if err != nil {
@@ -199,55 +198,55 @@ func makeRouteRequest(source Location, destination Location) Route {
 	return routes[0]
 }
 
-// Multiple Source Multiple Destination
-func makeRouteRequest(source Location, destination Location) Route {
+// // Multiple Source Multiple Destination
+// func makeRouteRequest(source Location, destination Location) Route {
 
-	// Now get the URL
-	locationsStrings := fmt.Sprintf("%f%%2C%f%%3A%f%%2C%f/json?travelMode=carkey=&", source.Latitude, source.Longitude, destination.Latitude, destination.Longitude)
-	url := os.Getenv("TOMTOM_API_ROUTE_URL") + locationsStrings + os.Getenv("TOMTOM_API_KEY")
+// 	// Now get the URL
+// 	locationsStrings := fmt.Sprintf("%f%%2C%f%%3A%f%%2C%f/json?travelMode=carkey=&", source.Latitude, source.Longitude, destination.Latitude, destination.Longitude)
+// 	url := os.Getenv("TOMTOM_API_ROUTE_URL") + locationsStrings + os.Getenv("TOMTOM_API_KEY")
 
-	// Make the request
-	res, err := http.Get(url)
-	if err != nil {
-		fmt.Printf("Error making http request: %s", err)
-		os.Exit(1)
-	}
+// 	// Make the request
+// 	res, err := http.Get(url)
+// 	if err != nil {
+// 		fmt.Printf("Error making http request: %s", err)
+// 		os.Exit(1)
+// 	}
 
-	// Decode the response
-	resBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		fmt.Printf("Error reading response body: %s", err)
-		os.Exit(1)
-	}
+// 	// Decode the response
+// 	resBody, err := io.ReadAll(res.Body)
+// 	if err != nil {
+// 		fmt.Printf("Error reading response body: %s", err)
+// 		os.Exit(1)
+// 	}
 
-	// Decode the response JSON
-	var p fastjson.Parser
-	var routes []Route
-	v, err := p.Parse(string(resBody))
-	if err != nil {
-		fmt.Printf("Error parsing response JSON: %s", err)
-		os.Exit(1)
-	}
+// 	// Decode the response JSON
+// 	var p fastjson.Parser
+// 	var routes []Route
+// 	v, err := p.Parse(string(resBody))
+// 	if err != nil {
+// 		fmt.Printf("Error parsing response JSON: %s", err)
+// 		os.Exit(1)
+// 	}
 
-	// Step 1. Loop through the data array
-	for _, route := range v.GetArray("routes") {
-		// Get the route summary
-		summary := route.Get("summary")
+// 	// Step 1. Loop through the data array
+// 	for _, route := range v.GetArray("routes") {
+// 		// Get the route summary
+// 		summary := route.Get("summary")
 
-		// Create a new route
-		newRoute := Route{
-			LengthInMeters:        summary.GetInt("lengthInMeters"),
-			TravelTimeInSeconds:   summary.GetInt("travelTimeInSeconds"),
-			TrafficDelayInSeconds: summary.GetInt("trafficDelayInSeconds"),
-			DepartureTime:         string(summary.GetStringBytes("departureTime")),
-			ArrivalTime:           string(summary.GetStringBytes("arrivalTime")),
-			Source:                source,
-			Destination:           destination,
-		}
+// 		// Create a new route
+// 		newRoute := Route{
+// 			LengthInMeters:        summary.GetInt("lengthInMeters"),
+// 			TravelTimeInSeconds:   summary.GetInt("travelTimeInSeconds"),
+// 			TrafficDelayInSeconds: summary.GetInt("trafficDelayInSeconds"),
+// 			DepartureTime:         string(summary.GetStringBytes("departureTime")),
+// 			ArrivalTime:           string(summary.GetStringBytes("arrivalTime")),
+// 			Source:                source,
+// 			Destination:           destination,
+// 		}
 
-		// Append the new route to the routes slice
-		routes = append(routes, newRoute)
-	}
+// 		// Append the new route to the routes slice
+// 		routes = append(routes, newRoute)
+// 	}
 
-	return routes[0]
-}
+// 	return routes[0]
+// }

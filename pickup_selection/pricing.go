@@ -115,10 +115,10 @@ func PriceRides(rides []Ride, pricingData []MLPricingData) []Ride {
 
 	// Get the prices
 	prices := v.GetArray("prices")
-	noWalkPrice := prices[len(prices)-1].GetFloat64()
+	//noWalkPrice := prices[len(prices)-1].GetFloat64()
 	for i, price := range prices {
 		rides[i].Price = price.GetFloat64()
-		rides[i].Savings = noWalkPrice - price.GetFloat64()
+		//rides[i].Savings = noWalkPrice - price.GetFloat64()
 	}
 
 	return rides

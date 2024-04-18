@@ -34,10 +34,12 @@ func (cache *PromCache) StoreRoute(prefix string, route Route, ttl int32) {
 		route.Destination.Longitude)
 
 	// Store route (length in meter, travel time in sec, traffic delay in sec)
-	routeJSON := fmt.Sprintf(`{"lengthInMeters": %d, "travelTimeInSeconds": %d, "trafficDelayInSeconds": %d}`,
+	routeJSON := fmt.Sprintf(`{"lengthInMeters": %d, "travelTimeInSeconds": %d, "trafficDelayInSeconds": %d, "historical": %d, "noTraffic": %d}`,
 		route.LengthInMeters,
 		route.TravelTimeInSeconds,
-		route.TrafficDelayInSeconds)
+		route.TrafficDelayInSeconds,
+		route.HistoricalTrafficTravelTimeInSeconds,
+		route.NoTrafficTravelTimeInSeconds)
 
 	// Debug key
 	fmt.Printf("stored key: %s\n", key)
@@ -59,13 +61,15 @@ func ParseRouteJSON(routeJSON string, source Location, destination Location) *Ro
 	}
 
 	return &Route{
-		TravelTimeInSeconds:   v.GetInt("travelTimeInSeconds"),
-		LengthInMeters:        v.GetInt("lengthInMeters"),
-		TrafficDelayInSeconds: v.GetInt("trafficDelayInSeconds"),
-		ArrivalTime:           "",
-		DepartureTime:         "",
-		Source:                source,
-		Destination:           destination,
+		TravelTimeInSeconds:                  v.GetInt("travelTimeInSeconds"),
+		LengthInMeters:                       v.GetInt("lengthInMeters"),
+		TrafficDelayInSeconds:                v.GetInt("trafficDelayInSeconds"),
+		HistoricalTrafficTravelTimeInSeconds: v.GetInt("historical"),
+		NoTrafficTravelTimeInSeconds:         v.GetInt("noTraffic"),
+		ArrivalTime:                          "",
+		DepartureTime:                        "",
+		Source:                               source,
+		Destination:                          destination,
 	}
 }
 

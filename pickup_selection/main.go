@@ -74,7 +74,6 @@ func StreamPickupPoints(center Location, streetGeometries [][]Location) []Locati
 	for range RING_RADII {
 		culledPoints = append(culledPoints, <-pointsChannel...)
 	}
-
 	// Return response
 	return culledPoints
 }
@@ -125,11 +124,31 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 	// Build rides in parallel
 	rides := StreamBuildRides(event.Source, event.Destination, culledPoints)
 
+	//Price no-walking ride
+	noWalkRoute := makeRouteRequest(event.Source, event.Destination)
+	noWalkInbound := RouteSummary{
+		Source:      event.Source,
+		Destination: event.Source,
+		Time:        0.0,
+		Distance:    0.0,
+	}
+	noWalkOutbound := RouteSummary{
+		Source:      noWalkRoute.Source,
+		Destination: noWalkRoute.Destination,
+		Time:        float64(noWalkRoute.TravelTimeInSeconds),
+		Distance:    float64(noWalkRoute.LengthInMeters),
+	}
+
+	noWalkRide := BuildRide(noWalkInbound, noWalkOutbound)
+
+	// Add noWalkRide to end of rides slice for savings calculations
+	rides = append(rides, noWalkRide)
+
 	// Price rides
 	rides = PriceRides(rides)
 
 	// TODO: do something with ride prices, etc
-	// sort rides by price
+	// sort rides by price lowest -> highest
 	sort.Slice(rides, func(i, j int) bool {
 		return rides[i].Price < rides[j].Price
 	})

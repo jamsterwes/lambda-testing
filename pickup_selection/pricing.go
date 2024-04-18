@@ -21,6 +21,7 @@ type Ride struct {
 	TotalTime     float64  `json:"totalTime"`
 	TotalDistance float64  `json:"totalDistance"`
 	Price         float64  `json:"price"`
+	Savings       float64  `json:"savings"`
 }
 
 func BuildRide(inbound RouteSummary, outbound RouteSummary) Ride {
@@ -112,8 +113,10 @@ func PriceRides(rides []Ride) []Ride {
 
 	// Get the prices
 	prices := v.GetArray("prices")
+	noWalkPrice := prices[len(prices)-1].GetFloat64()
 	for i, price := range prices {
 		rides[i].Price = price.GetFloat64()
+		rides[i].Savings = noWalkPrice - price.GetFloat64()
 	}
 
 	return rides

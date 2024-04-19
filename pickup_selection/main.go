@@ -159,7 +159,6 @@ func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupS
 
 	// Build rides in parallel
 	rides, pricingData := StreamBuildRides(event.Source, event.Destination, culledPoints)
-
 	// Price rides
 	rides = PriceRides(rides, pricingData)
 

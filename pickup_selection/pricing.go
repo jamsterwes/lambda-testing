@@ -119,7 +119,10 @@ func PriceRides(rides []Ride, pricingData []MLPricingData) []Ride {
 
 	for i, price := range prices {
 		rides[i].Price = price.GetFloat64()
-		rides[i].Savings = noWalkPrice - price.GetFloat64()
+		fmt.Printf("Price: %f\n", rides[i].Price)
+		fmt.Printf("No walk price: %f\n", noWalkPrice)
+		rides[i].Savings = 100 * (noWalkPrice - rides[i].Price) / noWalkPrice
+		fmt.Printf("Savings: %f\n", rides[i].Savings)
 	}
 
 	return rides

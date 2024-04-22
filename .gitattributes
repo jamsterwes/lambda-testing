@@ -1,1 +1,4 @@
 text eol=lf
+*.pb linguist-generated
+*.data-00000-of-00001 linguist-generated
+*.index linguist-generated

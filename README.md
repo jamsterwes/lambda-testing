@@ -6,5 +6,5 @@
 ### [Backend](https://github.com/jamsterwes/promenade-backend) (this repo) by [Mark Baca](https://github.com/markbaca42), [Nick Martinez](https://github.com/Nam0420), and [Wesley Taylor](https://github.com/jamsterwes)
 + ### Routing API (`pickup_selection`) by Mark Baca and Wesley Taylor
 + ### Pricing API (`price_prediction_go`) by Wesley Taylor
-+ ### Pricing ML Model (`price_prediction_go/tf2_model`) by Nick Martinez
++ ### Pricing ML Model (`price_prediction_go/tf2_model` and `price_prediction_go/Final_Model.ipynb`) by Nick Martinez
 ### [Internal Uber Data Collection Tool](https://github.com/jamsterwes/uber-data-collection) by Nick Martinez and Wesley Taylor

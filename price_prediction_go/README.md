@@ -1,5 +1,9 @@
 # Uber Price Prediction (with TensorFlow Go)
 
+## Exploring the ML Model
+
+While this repo does contain a pre-trained save of the ML model used, you may also explore `Final_Model.ipynb`, if you need to retrain the model for some reason.
+
 ## How to Install onto AWS
 
 ### Step 1. Log into AWS ECR

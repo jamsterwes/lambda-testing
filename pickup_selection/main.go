@@ -10,20 +10,28 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+// AWS Lambda input
 type PickupSelectionRequest = struct {
 	Source      Location `json:"source"`
 	Destination Location `json:"destination"`
 	MaxPoints   int      `json:"maxPoints"`
 }
 
+// AWS Lambda output
 type PickupSelectionResponse struct {
 	Rides []Ride `json:"rides"`
 }
 
+// Constant for storing radii of rings for pickup selection
 var RING_RADII []float64 = []float64{0.1, 0.25, 0.5, 0.75}
+
+// Constant for storing segments per ring in limiting queried points
 var CULL_SEGMENTS []int = []int{4, 4, 3, 3}
+
+// Constant for storing points per segment in limiting queried points
 var CULL_AMOUNTS []int = []int{1, 1, 1, 1}
 
+// Route summary for use in pricing
 type RouteSummary struct {
 	Source      Location `json:"source"`
 	Destination Location `json:"destination"`
@@ -31,8 +39,11 @@ type RouteSummary struct {
 	Distance    float64  `json:"distance"` // in mi
 }
 
+// Constant for meters to miles (someMiles := someMeters * MetersToMiles)
 const MetersToMiles float64 = 0.000621371
 
+// Function to convert a route to route summary.
+// Does unit conversions mainly, planned to do more here but got moved to later structures.
 func SummarizeRoutes(routes []Route) []RouteSummary {
 	var summaries []RouteSummary
 	for _, route := range routes {
@@ -46,10 +57,7 @@ func SummarizeRoutes(routes []Route) []RouteSummary {
 	return summaries
 }
 
-func RankPickupPoints(inboundSummaries []RouteSummary, outboundSummaries []RouteSummary, maxPoints int) []RouteSummary {
-	return []RouteSummary{}
-}
-
+// Multithreaded function to do intersections between rings and streets
 func StreamPickupPoints(center Location, streetGeometries [][]Location) []Location {
 	pointsChannel := make(chan []Location)
 
@@ -80,6 +88,7 @@ func StreamPickupPoints(center Location, streetGeometries [][]Location) []Locati
 	return culledPoints
 }
 
+// Multithreaded function for building rides given source -> pickup -> destination
 func StreamBuildRides(source Location, destination Location, pickups []Location) ([]Ride, []MLPricingData) {
 	// Make a channel to receive inboundSummaries
 	inboundSummariesChannel := make(chan []RouteSummary)
@@ -144,6 +153,7 @@ func StreamBuildRides(source Location, destination Location, pickups []Location)
 	return BuildRides(inboundSummaries, outboundSummaries), <-pricingDataChannel
 }
 
+// AWS Lambda entrypoint
 func HandleRequest(ctx context.Context, event *PickupSelectionRequest) (*PickupSelectionResponse, error) {
 	if event == nil {
 		return nil, fmt.Errorf("received nil event")

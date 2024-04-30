@@ -11,7 +11,7 @@ import (
 	"github.com/valyala/fastjson"
 )
 
-// Get street geometry
+// Get street geometry via Overpass API and OpenStreetMap
 func getStreetGeometry(radius float64, center Location, test_APIURL string) [][]Location {
 	// Get bounding box
 	left, bottom, right, top := getUserBoundingBox(radius, center)

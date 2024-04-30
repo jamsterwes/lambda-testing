@@ -11,13 +11,12 @@ import (
 	"github.com/valyala/fastjson"
 )
 
-/////////
-
+// Helper function to take the ceiling then convert to integer
 func CeilToInt(x float64) int {
 	return int(math.Ceil(x))
 }
 
-// "walking"-only
+// Function to call the OpenRouteService to get all source->destination pair walking info
 func ORSMatrix(sources []Location, destinations []Location, APIURL string) []Route {
 	// If source empty, return empty
 	if len(sources) == 0 {

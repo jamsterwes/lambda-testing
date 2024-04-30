@@ -10,6 +10,8 @@ import (
 	"github.com/valyala/fastjson"
 )
 
+// Used in AWS Lambda output
+// Stores location, walking, driving, and pricing info
 type Ride struct {
 	Source        Location `json:"source"`
 	PickupPoint   Location `json:"pickupPoint"`
@@ -36,6 +38,7 @@ type MLPricingData struct {
 	TimeOfDayCos         float64
 }
 
+// This converts two RouteSummaries into a Ride
 func BuildRide(inbound RouteSummary, outbound RouteSummary) Ride {
 	return Ride{
 		Source:        inbound.Source,
@@ -51,6 +54,7 @@ func BuildRide(inbound RouteSummary, outbound RouteSummary) Ride {
 	}
 }
 
+// Array/batch version of BuildRide
 func BuildRides(inbounds []RouteSummary, outbounds []RouteSummary) []Ride {
 	var rides []Ride
 	for i := range inbounds {
@@ -59,6 +63,7 @@ func BuildRides(inbounds []RouteSummary, outbounds []RouteSummary) []Ride {
 	return rides
 }
 
+// Helper function to construct JSON text for use with pricing endpoint
 func BuildPricingJSON(pricingData []MLPricingData) string {
 	// Now simply exporting { data: [][8]float32 }
 	out := `{ "data": [`
@@ -79,6 +84,7 @@ func BuildPricingJSON(pricingData []MLPricingData) string {
 	return out + "]}"
 }
 
+// Adds price information to a list of Rides using MLPricingData and the pricing endpoint
 func PriceRides(rides []Ride, pricingData []MLPricingData) []Ride {
 	// Build request body
 	requestBody := BuildPricingJSON(pricingData)
